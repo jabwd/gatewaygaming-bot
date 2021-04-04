@@ -1,0 +1,17 @@
+[package]
+name = "ignite"
+version = "0.0.0"
+authors = ["Antwan van Houdt <jabwd@exurion.com>"]
+edition = "2018"
+
+[dependencies]
+dotenv = "0.15.0"
+serde = "1.0.116"
+uuid = { version = "0.8", features = ["v4"] }
+
+[dependencies.serenity]
+features = ["cache", "framework", "standard_framework"]
+
+[dependencies.tokio]
+version = "0.2"
+features = ["full"]
