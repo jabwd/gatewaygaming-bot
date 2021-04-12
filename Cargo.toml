@@ -10,8 +10,9 @@ serde = "1.0.116"
 uuid = { version = "0.8", features = ["v4"] }
 
 [dependencies.serenity]
-features = ["cache", "framework", "standard_framework"]
+version = "0.10.2"
+features = ["cache", "framework", "standard_framework", "rustls_backend"]
 
 [dependencies.tokio]
-version = "0.2"
-features = ["full"]
+version = "1.0"
+features = ["macros", "signal", "rt-multi-thread"]
