@@ -1,3 +1,11 @@
+#[macro_use]
+extern crate diesel;
+extern crate dotenv;
+
+// use crate::diesel::Connection;
+use diesel::PgConnection;
+use diesel::prelude::*;
+use dotenv::dotenv;
 use std::{
     collections::HashSet,
     env,
@@ -14,8 +22,12 @@ use serenity::{
     model::{event::ResumedEvent, gateway::Ready, channel::Message},
     prelude::*
 };
+use commands::{
+    balance::*
+};
 
 mod commands;
+mod schema;
 
 pub struct ShardManagerContainer;
 
@@ -26,6 +38,10 @@ impl TypeMapKey for ShardManagerContainer {
 struct Handler;
 
 #[group]
+#[commands(
+    balance,
+    give
+)]
 struct General;
 
 #[async_trait]
@@ -34,8 +50,13 @@ impl EventHandler for Handler {
         println!("Gateway bot is ready {:?}", ready.user.name);
     }
 
-    async fn message(&self, ctx: Context, msg: Message) {
+    async fn message(&self, _ctx: Context, msg: Message) {
         println!("Message received: {:?}", msg);
+
+        match msg.guild_id {
+            Some(guild_id) => println!("Guild id: {:?}", guild_id.0),
+            None => println!("No guild id found"),
+        }
     }
 
     async fn resume(&self, _: Context, _: ResumedEvent) {
@@ -45,10 +66,16 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
     dotenv::dotenv().expect("Failed to load environment variables from .env file");
 
     let token = env::var("DISCORD_TOKEN")
         .expect("Expected a discord authentication token in the environment");
+
+    let database_url = env::var("DATABASE_URL")
+        .expect("DATABASE_URL must be set");
+    PgConnection::establish(&database_url)
+        .expect(&format!("Error connecting to {}", database_url));
 
     let http = Http::new_with_token(&token);
 
@@ -65,7 +92,7 @@ async fn main() {
     let framework = StandardFramework::new()
         .configure(|c| c
             .owners(owners)
-            .prefix("-"))
+            .prefix("!"))
         .group(&GENERAL_GROUP);
     
     let mut client = Client::builder(&token)
