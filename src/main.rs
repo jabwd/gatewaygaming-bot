@@ -3,7 +3,10 @@ extern crate diesel;
 extern crate dotenv;
 
 // use crate::diesel::Connection;
-use diesel::PgConnection;
+use diesel::{
+    PgConnection,
+    r2d2::{ ConnectionManager, Pool },
+};
 use diesel::prelude::*;
 use dotenv::dotenv;
 use std::{
@@ -27,7 +30,8 @@ use commands::{
 };
 
 mod commands;
-mod schema;
+pub mod schema;
+pub mod models;
 
 pub struct ShardManagerContainer;
 
@@ -35,19 +39,47 @@ impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
 }
 
+pub type DbPoolType = Arc<Pool<ConnectionManager<PgConnection>>>;
+pub struct DbPool(DbPoolType);
+
+impl TypeMapKey for DbPool {
+    type Value = DbPoolType;
+}
+
 struct Handler;
 
 #[group]
 #[commands(
     balance,
-    give
+    give,
+    take
 )]
 struct General;
 
+use serenity::model::guild::MembersIter;
+use serenity::futures::StreamExt;
+
 #[async_trait]
 impl EventHandler for Handler {
-    async fn ready(&self, _: Context, ready: Ready) {
-        println!("Gateway bot is ready {:?}", ready.user.name);
+    async fn ready(&self, ctx: Context, ready: Ready) {
+        println!("=> Connected to discord, loading guild data…");
+
+        if let Ok(guilds) = ready.user.guilds(&ctx).await {
+            for (index, guild) in guilds.into_iter().enumerate() {
+                println!("{}: {}:{}", index, guild.name, guild.id);
+                let mut members = MembersIter::<Http>::stream(&ctx, guild.id).boxed();
+                while let Some(member_result) = members.next().await {
+                    match member_result {
+                        Ok(member) => println!(
+                            "{} is {}",
+                            member,
+                            member.display_name()
+                        ),
+                        Err(error) => eprintln!("Error listing members: {}", error),
+                    }
+                }
+            }
+        }
     }
 
     async fn message(&self, _ctx: Context, msg: Message) {
@@ -74,8 +106,14 @@ async fn main() {
 
     let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL must be set");
-    PgConnection::establish(&database_url)
-        .expect(&format!("Error connecting to {}", database_url));
+
+    // Set up PSQL connection manager and connection pool
+    let manager: ConnectionManager<PgConnection> = ConnectionManager::new(database_url);
+    let pool = Pool::builder()
+        .max_size(4)
+        .build(manager)
+        .expect("Could not build database connection pool");
+    let pool = Arc::new(pool);
 
     let http = Http::new_with_token(&token);
 
@@ -105,6 +143,7 @@ async fn main() {
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
+        data.insert::<DbPool>(pool.clone());
     }
 
     let shard_manager = client.shard_manager.clone();
