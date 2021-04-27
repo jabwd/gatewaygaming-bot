@@ -1,9 +1,6 @@
-CREATE TABLE "public"."user" (
+CREATE TABLE "public"."users" (
     "id" SERIAL,
-    "guild_id" BIGINT,
-    "discord_id" BIGINT,
-    "name" text,
-    "balance" BIGINT,
+    "discord_id" BIGINT NOT NULL,
     "last_active" timestamp with time zone,
     PRIMARY KEY ("id")
 );
