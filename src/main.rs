@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate diesel;
 extern crate dotenv;
+extern crate chrono;
 
 // use crate::diesel::Connection;
 use diesel::{
@@ -82,13 +83,27 @@ impl EventHandler for Handler {
         }
     }
 
-    async fn message(&self, _ctx: Context, msg: Message) {
-        println!("Message received: {:?}", msg);
+    async fn message(&self, ctx: Context, msg: Message) {
+        let data = ctx.data.read().await;
+        {
+            let db = data.get::<DbPool>().unwrap();
+            let user = models::user::User::get(msg.author.id, &db);
 
-        match msg.guild_id {
-            Some(guild_id) => println!("Guild id: {:?}", guild_id.0),
-            None => println!("No guild id found"),
+            models::user::User::update_last_active(user.id, &db);
         }
+        // println!("Message received");
+
+        
+
+        // match msg.member {
+        //     Some(member) => println!("User that sent the message: {:?}", member),
+        //     None => println!("No use associated with message"),
+        // }
+
+        // match msg.guild_id {
+        //     Some(guild_id) => println!("Guild id: {:?}", guild_id.0),
+        //     None => println!("No guild id found"),
+        // }
     }
 
     async fn resume(&self, _: Context, _: ResumedEvent) {
@@ -130,7 +145,7 @@ async fn main() {
     let framework = StandardFramework::new()
         .configure(|c| c
             .owners(owners)
-            .prefix("!"))
+            .prefix("gg."))
         .group(&GENERAL_GROUP);
     
     let mut client = Client::builder(&token)

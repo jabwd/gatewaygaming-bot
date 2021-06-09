@@ -7,8 +7,9 @@ edition = "2018"
 [dependencies]
 dotenv = "0.15.0"
 serde = "1.0.116"
+chrono = "0.4"
 uuid = { version = "0.8", features = ["v4"] }
-diesel = { version = "1.4.4", features = ["postgres", "r2d2"] }
+diesel = { version = "1.4.4", features = ["postgres", "r2d2", "numeric", "chrono"] }
 redis = { version = "0.20.0", features = ["tokio-comp", "tokio-native-tls-comp"] }
 
 [dependencies.serenity]
