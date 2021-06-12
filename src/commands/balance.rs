@@ -15,7 +15,7 @@ use crate::{ DbPool, models };
 async fn balance(ctx: &Context, msg: &Message) -> CommandResult {
     let mut data = ctx.data.write();
 
-    msg.reply(&ctx, "Reading balance");
+    msg.reply(&ctx, "Reading balance").await.expect("Unable to reply to message");
     Ok(())
 }
 

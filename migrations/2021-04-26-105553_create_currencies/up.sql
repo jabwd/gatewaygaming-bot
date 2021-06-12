@@ -1,6 +1,6 @@
 CREATE TABLE "public"."currencies" (
     "id" SERIAL,
-    "guild_id" bigint NOT NULL,
+    "guild_id" text NOT NULL,
     "name" text NOT NULL,
     "roles" bigint[] NOT NULL,
     "gain_rate" int NOT NULL,
