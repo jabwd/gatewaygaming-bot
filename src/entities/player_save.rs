@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 /*
 {
     "CharacterClass": "EnterDinoCodeHere",
@@ -29,26 +31,59 @@
 }
 */
 
+#[derive(Deserialize, Serialize)]
 pub struct Player {
+    #[serde(rename = "CharacterClass")]
     pub character_class: String,
-
-    pub gender: bool,
+    #[serde(rename = "DNA")]
+    pub dna: String,
+    #[serde(rename = "Location_Thenyaw_Island")]
+    pub location_thenyaw_island: String,
+    #[serde(rename = "Rotation_Thenyaw_Island")]
+    pub rotation_thenyaw_island: String,
+    #[serde(rename = "Growth")]
+    pub growth: f32,
+    #[serde(rename = "Hunger")]
+    pub hunger: i32,
+    #[serde(rename = "Thirst")]
+    pub thirst: i32,
+    #[serde(rename = "Stamina")]
+    pub stamina: i32,
+    #[serde(rename = "Health")]
+    pub health: i32,
+    #[serde(rename = "BleedingRate")]
+    pub bleeding_rate: f32,
+    #[serde(rename = "Oxygen")]
+    pub oxygen: i32,
+    #[serde(rename = "bGender")]
+    pub gender: bool, // male = false, female = true
+    #[serde(rename = "bIsResting")]
     pub is_resting: bool,
+    #[serde(rename = "bBrokenLegs")]
     pub broken_legs: bool,
-
+    #[serde(rename = "ProgressionPoints")]
     pub progression_points: String,
-    pub progression_ier: String,
+    #[serde(rename = "ProgressionTier")]
+    pub progression_tier: String,
+    #[serde(rename = "UnlockedCharacters")]
     pub unlocked_characters: String,
-
+    #[serde(rename = "CameraRotation_Thenyaw_Island")]
     pub camera_rotation_thenyaw_island: String,
+    #[serde(rename = "CameraDistance_Thenyaw_Island")]
     pub camera_distance_thenyaw_island: String,
-
+    #[serde(rename = "SkinPaletteSection1")]
     pub skin_palette_section1: i32,
+    #[serde(rename = "SkinPaletteSection2")]
     pub skin_palette_section2: i32,
+    #[serde(rename = "SkinPaletteSection3")]
     pub skin_palette_section3: i32,
+    #[serde(rename = "SkinPaletteSection4")]
     pub skin_palette_section4: i32,
+    #[serde(rename = "SkinPaletteSection5")]
     pub skin_palette_section5: i32,
+    #[serde(rename = "SkinPaletteSection6")]
     pub skin_palette_section6: i32,
+    #[serde(rename = "SkinPaletteVariation")]
     pub skin_palette_variation: String,
 }
 
