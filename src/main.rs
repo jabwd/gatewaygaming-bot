@@ -26,6 +26,7 @@ use serenity::{
     model::{event::ResumedEvent, gateway::Ready, channel::Message},
     prelude::*
 };
+use async_ftp::FtpStream;
 use commands::{
     balance::*
 };
@@ -117,16 +118,31 @@ async fn main() {
     dotenv().ok();
     dotenv::dotenv().expect("Failed to load environment variables from .env file");
 
+    // Load in all the env variables we will be using before setting up anything else
     let token = env::var("DISCORD_TOKEN")
         .expect("Expected a discord authentication token in the environment");
-
     let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL must be set");
+    let ftp_address = env::var("FTP_ADDRESS")
+        .expect("FTP_ADDRESS must be set");
+    let ftp_username = env::var("FTP_USERNAME")
+        .expect("FTP_USERNAME must be set");
+    let ftp_password = env::var("FTP_PASSWORD")
+        .expect("FTP_PASSWORD must be set");
+
+    let mut ftp_stream = FtpStream::connect(ftp_address).await
+        .expect("Unable to connect to FTP server");
+    ftp_stream.login(&ftp_username, &ftp_password).await.unwrap();
+    println!("Current directory: {}", ftp_stream.pwd().await.unwrap());
+    ftp_stream.cwd("/home/jabwd/TheIsleSaves").await.unwrap();
+    println!("Current directory: {}", ftp_stream.pwd().await.unwrap());
+    let files = ftp_stream.nlst(None).await.unwrap();
+    println!("Files: {:?}", files);
 
     // Set up PSQL connection manager and connection pool
     let manager: ConnectionManager<PgConnection> = ConnectionManager::new(database_url);
     let pool = Pool::builder()
-        .max_size(4)
+        .max_size(1)
         .build(manager)
         .expect("Could not build database connection pool");
     let pool = Arc::new(pool);
@@ -172,4 +188,7 @@ async fn main() {
     if let Err(reason) = client.start().await {
         println!("Client error: {:?}", reason);
     }
+
+    let _ = ftp_stream.quit().await;
+    println!("Bot shut down");
 }

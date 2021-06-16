@@ -11,6 +11,7 @@ pub struct User {
     pub id: i32,
     pub discord_id: String,
     pub last_active: Option<DateTime<Utc>>,
+    pub steam_id: Option<String>,
 }
 
 #[derive(Insertable)]

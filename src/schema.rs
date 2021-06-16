@@ -30,6 +30,7 @@ table! {
         id -> Int4,
         discord_id -> Text,
         last_active -> Nullable<Timestamptz>,
+        steam_id -> Nullable<Text>,
     }
 }
 

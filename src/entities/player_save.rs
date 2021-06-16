@@ -1,36 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-/*
-{
-    "CharacterClass": "EnterDinoCodeHere",
-    "DNA": "",
-    "Location_Thenyaw_Island": "X=128935.000 Y=93480.086 Z=-67279.922",
-    "Rotation_Thenyaw_Island": "P=0.000000 Y=-121.233009 R=0.000000",
-    "Growth": "1.0",
-    "Hunger": "9999",
-    "Thirst": "9999",
-    "Stamina": "9999",
-    "Health": "9999",
-    "BleedingRate": "0",
-    "Oxygen": "40",
-    "bGender": false,
-    "bIsResting": false,
-    "bBrokenLegs": false,
-    "ProgressionPoints": "0",
-    "ProgressionTier": "1",
-    "UnlockedCharacters": "",
-    "CameraRotation_Thenyaw_Island": "P=0.000000 Y=-121.232460 R=0.000000",
-    "CameraDistance_Thenyaw_Island": "449.998474"
-    "SkinPaletteSection1": 40,
-    "SkinPaletteSection2": 37,
-    "SkinPaletteSection3": 37,
-    "SkinPaletteSection4": 24,
-    "SkinPaletteSection5": 39,
-    "SkinPaletteSection6": 254,
-    "SkinPaletteVariation": "6.0"
-}
-*/
-
 #[derive(Deserialize, Serialize)]
 pub struct Player {
     #[serde(rename = "CharacterClass")]
@@ -167,4 +136,63 @@ HerreraJuv
 Spino
 SpinoJuv
 Velo
+*/
+
+/*
+{
+	"CharacterClass": "RexAdultS",
+	"DNA": "",
+	"Location_Thenyaw_Island": "X=48922.609 Y=36266.676 Z=-53425.770",
+	"Rotation_Thenyaw_Island": "P=0.000000 Y=-19.047825 R=0.000000",
+	"Growth": "1.0",
+	"Hunger": "2127",
+	"Thirst": "89",
+	"Stamina": "100",
+	"Health": "2574",
+	"BleedingRate": "25",
+	"Oxygen": "40",
+	"bGender": false,
+	"bIsResting": false,
+	"bBrokenLegs": true,
+	"ProgressionPoints": "0",
+	"ProgressionTier": "1",
+	"UnlockedCharacters": "RexSubS;RexAdultS;",
+	"CameraRotation_Thenyaw_Island": "P=0.000000 Y=70.952141 R=0.000000",
+	"CameraDistance_Thenyaw_Island": "699.999084",
+	"SkinPaletteSection1": 63,
+	"SkinPaletteSection2": 26,
+	"SkinPaletteSection3": 29,
+	"SkinPaletteSection4": 30,
+	"SkinPaletteSection5": 24,
+	"SkinPaletteSection6": 0,
+	"SkinPaletteVariation": "6.0"
+}
+{
+    "CharacterClass": "EnterDinoCodeHere",
+    "DNA": "",
+    "Location_Thenyaw_Island": "X=128935.000 Y=93480.086 Z=-67279.922",
+    "Rotation_Thenyaw_Island": "P=0.000000 Y=-121.233009 R=0.000000",
+    "Growth": "1.0",
+    "Hunger": "9999",
+    "Thirst": "9999",
+    "Stamina": "9999",
+    "Health": "9999",
+    "BleedingRate": "0",
+    "Oxygen": "40",
+    "bGender": false,
+    "bIsResting": false,
+    "bBrokenLegs": false,
+    "ProgressionPoints": "0",
+    "ProgressionTier": "1",
+    "UnlockedCharacters": "",
+    "CameraRotation_Thenyaw_Island": "P=0.000000 Y=-121.232460 R=0.000000",
+    "CameraDistance_Thenyaw_Island": "449.998474"
+    "SkinPaletteSection1": 40,
+    "SkinPaletteSection2": 37,
+    "SkinPaletteSection3": 37,
+    "SkinPaletteSection4": 24,
+    "SkinPaletteSection5": 39,
+    "SkinPaletteSection6": 254,
+    "SkinPaletteVariation": "6.0"
+}
 */
