@@ -31,6 +31,7 @@ use commands::{
 };
 
 mod commands;
+pub mod entities;
 pub mod schema;
 pub mod models;
 
