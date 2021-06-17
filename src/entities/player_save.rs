@@ -1,4 +1,6 @@
+use serde::de::Error;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 #[derive(Deserialize, Serialize)]
 pub struct Player {
@@ -54,6 +56,47 @@ pub struct Player {
     pub skin_palette_section6: i32,
     #[serde(rename = "SkinPaletteVariation")]
     pub skin_palette_variation: String,
+}
+
+impl Player {
+    pub fn new(character_class: String, gender: bool) -> Player {
+        let player_save = Player
+        {
+            character_class,
+            dna: "".to_string(),
+            location_thenyaw_island: "".to_string(),
+            rotation_thenyaw_island: "".to_string(),
+            growth: 1.0,
+            hunger: 9999,
+            thirst: 9999,
+            stamina: 9999,
+            health: 9999,
+            bleeding_rate: 0.0,
+            oxygen: 40,
+            gender,
+            is_resting: false,
+            broken_legs: false,
+            progression_points: "0.0".to_string(),
+            progression_tier: "1.0".to_string(),
+            unlocked_characters: "".to_string(),
+            camera_rotation_thenyaw_island: "".to_string(),
+            camera_distance_thenyaw_island: "".to_string(),
+            skin_palette_section1: 63,
+            skin_palette_section2: 26,
+            skin_palette_section3: 29,
+            skin_palette_section4: 30,
+            skin_palette_section5: 24,
+            skin_palette_section6: 0,
+            skin_palette_variation: "6.0".to_string(),
+        };
+        
+        player_save
+    }
+
+    pub fn json_string(&self) -> String {
+        let res = serde_json::to_string(&self);
+        return res.unwrap();
+    }
 }
 
 /*

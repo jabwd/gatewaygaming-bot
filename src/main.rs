@@ -28,13 +28,14 @@ use serenity::{
 };
 use async_ftp::FtpStream;
 use commands::{
-    balance::*
+    balance::*,
+    dino_injections::*,
 };
 
 mod commands;
-pub mod entities;
-pub mod schema;
-pub mod models;
+mod entities;
+mod schema;
+mod models;
 
 pub struct ShardManagerContainer;
 
@@ -49,13 +50,23 @@ impl TypeMapKey for DbPool {
     type Value = DbPoolType;
 }
 
+pub struct FtpStreamContainer;
+
+impl TypeMapKey for FtpStreamContainer {
+    type Value = Arc<FtpStream>;
+}
+
 struct Handler;
 
 #[group]
 #[commands(
     balance,
     give,
-    take
+    take,
+    cash_buy,
+    admin_inject,
+    random_dino,
+    slay_dino,
 )]
 struct General;
 
@@ -137,9 +148,11 @@ async fn main() {
     ftp_stream.login(&ftp_username, &ftp_password).await.unwrap();
     println!("Current directory: {}", ftp_stream.pwd().await.unwrap());
     // ftp_stream.cwd("/home/jabwd/TheIsleSaves").await.unwrap();
-    println!("Current directory: {}", ftp_stream.pwd().await.unwrap());
-    let files = ftp_stream.nlst(None).await.unwrap();
-    println!("Files: {:?}", files);
+    // println!("Current directory: {}", ftp_stream.pwd().await.unwrap());
+    // let files = ftp_stream.nlst(None).await.unwrap();
+    // println!("Files: {:?}", files);
+
+    let ftp_arc = Arc::new(ftp_stream);
 
     // Set up PSQL connection manager and connection pool
     let manager: ConnectionManager<PgConnection> = ConnectionManager::new(database_url);
@@ -178,6 +191,7 @@ async fn main() {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
         data.insert::<DbPool>(pool.clone());
+        data.insert::<FtpStreamContainer>(ftp_arc);
     }
 
     let shard_manager = client.shard_manager.clone();
@@ -185,12 +199,13 @@ async fn main() {
     tokio::spawn(async move {
         tokio::signal::ctrl_c().await.expect("Could not register SIGKILL handler");
         shard_manager.lock().await.shutdown_all().await;
+        // ftp_arc.as_ref().quit().await;
     });
 
     if let Err(reason) = client.start().await {
         println!("Client error: {:?}", reason);
     }
 
-    let _ = ftp_stream.quit().await;
-    println!("Bot shut down");
+    // let _ = ftp_stream.quit().await;
+    // println!("Bot shut down");
 }

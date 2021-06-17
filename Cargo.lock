@@ -397,6 +397,7 @@ dependencies = [
  "dotenv",
  "redis",
  "serde",
+ "serde_json",
  "serenity",
  "tokio",
  "uuid",
