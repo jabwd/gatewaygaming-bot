@@ -1,30 +1,60 @@
-use std::sync::Arc;
+use crate::DbPool;
 use serenity::{
     prelude::*,
     model::{
         channel::Message,
-        prelude::{ UserId, Permissions },
     },
     framework::standard::{ Args, CommandResult, macros::command, ArgError::Parse },
 };
 use async_ftp::FtpStream;
 use std::io::Cursor;
-use crate::{FtpStreamContainer, entities::player_save::Player, models};
+use crate::{
+    models::user::*,
+    FtpStreamContainer,
+    entities::player_save::Player,
+    internal::*
+};
+
+#[command]
+#[aliases("reg")]
+#[only_in("guilds")]
+async fn register(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    let steam_id = match args.single::<String>() {
+        Ok(steam_id) => steam_id,
+        Err(_) => "".to_string(),
+    };
+    if steam_id.len() != 17 {
+        msg.reply(&ctx, "invalid steam id").await.expect("Unable to reply to message");
+        return Ok(());
+    }
+
+    let data = ctx.data.read().await;
+    {
+        let db = data.get::<DbPool>().unwrap();
+        let user = User::get(msg.author.id, &db);
+
+        User::update_steam_id(user.id, &db, &steam_id);
+        msg.delete(&ctx).await.expect("Unable to delete sensitive message content");
+        // let channel = match msg.channel_id.to_channel(&ctx).await {
+        //     Ok(channel) => channel,
+        //     Err(why) => {
+        //         println!("Error getting channel {:?}", why);
+        //         return Ok(());
+        //     },
+        // };
+        if let Err(why) = msg.channel_id.say(&ctx.http, "Steam ID registered").await {
+            println!("Unable to send message to channel {:?}", why);
+        }
+        
+        // msg.reply(&ctx, "steam id saved").await.expect("Unable to reply to message");
+    }
+    Ok(())
+}
 
 #[command]
 #[aliases("cashbuy", "cb")]
 #[only_in("guilds")]
 async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    // let mut data = ctx.data.write().await;
-    // {
-    //     let ftp_stream = data.get::<FtpStreamContainer>().unwrap().clone();
-
-    //     let file_list = ftp_stream.nlst(None).await.unwrap();
-    //     println!("Existing files: {:?}", file_list);
-    // }
-
-    let steam_id: String = "76561198008239242".to_string();
-
     // cashbuy rex male
     let dino = match args.single::<String>() {
         Ok(dino_str) => dino_str,
@@ -51,16 +81,21 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
 
     let ftp_stream_lock = {
         let data_read = ctx.data.read().await;
-
         data_read.get::<FtpStreamContainer>().expect("Expected FTP stream").clone()
     };
 
-    {
+    let user = get_message_user(&ctx, &msg).await;
+    if let Some(steam_id) = user.steam_id {
+        if steam_id.len() != 17 {
+            msg.reply(&ctx, "No valid steam ID registered for this user").await.expect("unable to reply to msg");
+            return Ok(());
+        }
         let mut ftp_stream = ftp_stream_lock.lock().await;
 
         let file_list = ftp_stream.nlst(None).await.unwrap();
         let file_name = format!("{}.json", steam_id);
 
+        let mut found = false;
         for file in file_list {
             if file == file_name {
                 let mut read_cursor = ftp_stream.simple_retr(&file).await.unwrap();
@@ -69,14 +104,24 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
                 let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
                 let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
                 ftp_stream.put(&file_name, &mut reader).await.unwrap();
+                // TODO: List which dino got replaced with what
+                // and maybe add a confirmation step
+                msg.reply(&ctx, "Dino injected").await.expect("Unable to reply to message");
+                found = true;
                 break;
             }
         }
 
-        
+        if found == false {
+            let player_object = Player::new("Anky".to_string(), true);
+            let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
+            let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
+            ftp_stream.put(&file_name, &mut reader).await.unwrap();
+            msg.reply(&ctx, "Dino injected").await.expect("Unable to reply to message");
+        }
+    } else {
+        msg.reply(&ctx, "Link steam ID first").await.expect("unable to reply to msg");
     }
-
-    msg.reply(&ctx, "Dino injected").await.expect("Unable to reply to message");
     Ok(())
 }
 
@@ -84,10 +129,10 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
 #[aliases("inject", "ij")]
 #[only_in("guilds")]
 async fn admin_inject(ctx: &Context, msg: &Message) -> CommandResult {
-    let mut data = ctx.data.read().await;
-    {
-        let ftp_stream = data.get::<FtpStreamContainer>().unwrap();
-    }
+    // let mut data = ctx.data.read().await;
+    // {
+    //     let ftp_stream = data.get::<FtpStreamContainer>().unwrap();
+    // }
 
     msg.reply(&ctx, "Reading balance").await.expect("Unable to reply to message");
     Ok(())
@@ -97,7 +142,7 @@ async fn admin_inject(ctx: &Context, msg: &Message) -> CommandResult {
 #[aliases("randomdino", "rd")]
 #[only_in("guilds")]
 async fn random_dino(ctx: &Context, msg: &Message) -> CommandResult {
-    let mut data = ctx.data.write();
+    // let mut data = ctx.data.write();
 
     msg.reply(&ctx, "Random dino").await.expect("Unable to reply to message");
     Ok(())
@@ -107,7 +152,7 @@ async fn random_dino(ctx: &Context, msg: &Message) -> CommandResult {
 #[aliases("slay", "kill")]
 #[only_in("guilds")]
 async fn slay_dino(ctx: &Context, msg: &Message) -> CommandResult {
-    let mut data = ctx.data.write();
+    // let mut data = ctx.data.write();
 
     msg.reply(&ctx, "Random dino").await.expect("Unable to reply to message");
     Ok(())

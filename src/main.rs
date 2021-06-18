@@ -36,6 +36,7 @@ mod commands;
 mod entities;
 mod schema;
 mod models;
+mod internal;
 
 pub struct ShardManagerContainer;
 
@@ -67,6 +68,7 @@ struct Handler;
     admin_inject,
     random_dino,
     slay_dino,
+    register,
 )]
 struct General;
 
@@ -75,25 +77,25 @@ use serenity::futures::StreamExt;
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn ready(&self, ctx: Context, ready: Ready) {
-        println!("=> Connected to discord, loading guild data…");
-
-        if let Ok(guilds) = ready.user.guilds(&ctx).await {
-            for (index, guild) in guilds.into_iter().enumerate() {
-                println!("{}: {}:{}", index, guild.name, guild.id);
-                let mut members = MembersIter::<Http>::stream(&ctx, guild.id).boxed();
-                while let Some(member_result) = members.next().await {
-                    match member_result {
-                        Ok(member) => println!(
-                            "{} is {}",
-                            member,
-                            member.display_name()
-                        ),
-                        Err(error) => eprintln!("Error listing members: {}", error),
-                    }
-                }
-            }
-        }
+    async fn ready(&self, _ctx: Context, _ready: Ready) {
+        println!("{{GG}} Bot is ready");
+        // println!("=> Connected to discord, loading guild data…");
+        // if let Ok(guilds) = ready.user.guilds(&ctx).await {
+        //     for (index, guild) in guilds.into_iter().enumerate() {
+        //         println!("{}: {}:{}", index, guild.name, guild.id);
+        //         let mut members = MembersIter::<Http>::stream(&ctx, guild.id).boxed();
+        //         while let Some(member_result) = members.next().await {
+        //             match member_result {
+        //                 Ok(member) => println!(
+        //                     "{} is {}",
+        //                     member,
+        //                     member.display_name()
+        //                 ),
+        //                 Err(error) => eprintln!("Error listing members: {}", error),
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     async fn message(&self, ctx: Context, msg: Message) {
@@ -104,10 +106,6 @@ impl EventHandler for Handler {
 
             models::user::User::update_last_active(user.id, &db);
         }
-        // println!("Message received");
-
-        
-
         // match msg.member {
         //     Some(member) => println!("User that sent the message: {:?}", member),
         //     None => println!("No use associated with message"),
@@ -197,13 +195,9 @@ async fn main() {
     tokio::spawn(async move {
         tokio::signal::ctrl_c().await.expect("Could not register SIGKILL handler");
         shard_manager.lock().await.shutdown_all().await;
-        // ftp_arc.as_ref().quit().await;
     });
 
     if let Err(reason) = client.start().await {
         println!("Client error: {:?}", reason);
     }
-
-    // let _ = ftp_stream.quit().await;
-    // println!("Bot shut down");
 }

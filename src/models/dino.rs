@@ -19,7 +19,7 @@ impl Dino {
 
     pub fn list() -> Vec<Dino>  {
         let list = vec![
-            Dino::new("Anky", "Anky", vec!["anky", "aids2"]),
+            Dino::new("Anky", "Anky", vec!["anky", "aids2"], true),
         ];
         list
     }
