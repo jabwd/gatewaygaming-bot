@@ -2,7 +2,7 @@ use serde::de::Error;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Player {
     #[serde(rename = "CharacterClass")]
     pub character_class: String,

@@ -53,7 +53,7 @@ impl TypeMapKey for DbPool {
 pub struct FtpStreamContainer;
 
 impl TypeMapKey for FtpStreamContainer {
-    type Value = Arc<FtpStream>;
+    type Value = Arc<Mutex<FtpStream>>;
 }
 
 struct Handler;
@@ -141,18 +141,16 @@ async fn main() {
     let ftp_password = env::var("FTP_PASSWORD")
         .expect("FTP_PASSWORD must be set");
 
-    println!("FTP Connect?");
     let mut ftp_stream = FtpStream::connect(ftp_address).await
         .expect("Unable to connect to FTP server");
-    println!("Stoeff");
     ftp_stream.login(&ftp_username, &ftp_password).await.unwrap();
-    println!("Current directory: {}", ftp_stream.pwd().await.unwrap());
+    // println!("Current directory: {}", ftp_stream.pwd().await.unwrap());
     // ftp_stream.cwd("/home/jabwd/TheIsleSaves").await.unwrap();
     // println!("Current directory: {}", ftp_stream.pwd().await.unwrap());
     // let files = ftp_stream.nlst(None).await.unwrap();
     // println!("Files: {:?}", files);
 
-    let ftp_arc = Arc::new(ftp_stream);
+    // let ftp_arc = Arc::new(ftp_stream);
 
     // Set up PSQL connection manager and connection pool
     let manager: ConnectionManager<PgConnection> = ConnectionManager::new(database_url);
@@ -191,7 +189,7 @@ async fn main() {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
         data.insert::<DbPool>(pool.clone());
-        data.insert::<FtpStreamContainer>(ftp_arc);
+        data.insert::<FtpStreamContainer>(Arc::new(Mutex::new(ftp_stream)));
     }
 
     let shard_manager = client.shard_manager.clone();
