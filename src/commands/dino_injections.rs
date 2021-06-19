@@ -1,3 +1,4 @@
+use crate::models::dino::Dino;
 use crate::DbPool;
 use serenity::{
     prelude::*,
@@ -56,28 +57,58 @@ async fn register(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
 #[only_in("guilds")]
 async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     // cashbuy rex male
-    let dino = match args.single::<String>() {
+    let dino_key_str = match args.single::<String>() {
         Ok(dino_str) => dino_str,
         Err(_) => "".to_string(),
     };
 
-    let gender = match args.single::<String>() {
+    let gender_str = match args.single::<String>() {
         Ok(gender_str) => gender_str,
         Err(_) => "".to_string(),
     };
 
-    if dino.len() == 0 {
+    if dino_key_str.len() == 0 {
         msg.reply(&ctx, "Usage: !cb {dino} {gender}").await.expect("Unable to reply to message");
         return Ok(());
     }
 
-    if gender.len() == 0 {
+    if gender_str.len() == 0 {
         msg.reply(&ctx, "Usage: !cb {dino} {gender}").await.expect("Unable to reply to message");
         return Ok(());
     }
 
-    // let player = Player::new("Anky".to_string(), true);
-    
+    let list = Dino::list();
+
+    let mut dino_object: Option<&Dino> = None;
+
+    for dino in list.iter() {
+        for key in dino.aliases.iter() {
+            if key == &dino_key_str {
+                dino_object = Some(dino);
+                break;
+            }
+        }
+    }
+
+    let dino = match dino_object {
+        Some(d) => d,
+        None => {
+            msg.reply(&ctx, "Dino not found").await.expect("Unable to reply to message");;
+            return Ok(());
+        }
+    };
+
+    let gender = match gender_str.as_str() {
+        "m" => false,
+        "male" => false,
+        "f" => true,
+        "female" => true,
+        "fem" => true,
+        _ => {
+            msg.reply(&ctx, "Usage: !cb {dino} m|f").await.expect("Unable to reply to message");
+            return Ok(());
+        },
+    };
 
     let ftp_stream_lock = {
         let data_read = ctx.data.read().await;
@@ -100,13 +131,15 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
             if file == file_name {
                 let mut read_cursor = ftp_stream.simple_retr(&file).await.unwrap();
                 let mut player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
-                player_object.gender = true;
+                player_object.gender = gender;
+                player_object.character_class = dino.character_class.to_string();
                 let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
                 let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
                 ftp_stream.put(&file_name, &mut reader).await.unwrap();
                 // TODO: List which dino got replaced with what
                 // and maybe add a confirmation step
-                msg.reply(&ctx, "Dino injected").await.expect("Unable to reply to message");
+                let reply_msg = format!("Dino {} injected, gender: {}", dino.character_class.to_string(), gender);
+                msg.reply(&ctx, reply_msg).await.expect("Unable to reply to message");
                 found = true;
                 break;
             }
