@@ -1,3 +1,5 @@
+use crate::services::unbelievabot::*;
+use serenity::utils::Colour;
 use crate::models::dino::Dino;
 use crate::DbPool;
 use serenity::{
@@ -5,9 +7,9 @@ use serenity::{
     model::{
         channel::Message,
     },
-    framework::standard::{ Args, CommandResult, macros::command, ArgError::Parse },
+    framework::standard::{ Args, CommandResult, macros::command },
 };
-use async_ftp::FtpStream;
+use serenity::model::channel::ReactionType;
 use std::io::Cursor;
 use crate::{
     models::user::*,
@@ -129,18 +131,96 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
         let mut found = false;
         for file in file_list {
             if file == file_name {
+                found = true;
                 let mut read_cursor = ftp_stream.simple_retr(&file).await.unwrap();
                 let mut player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
+                println!("{:?}", player_object);
+                let previous_dino = player_object.character_class;
+                
                 player_object.gender = gender;
                 player_object.character_class = dino.character_class.to_string();
+                player_object.growth = dino.growth.to_string();
+                player_object.health = "99999".to_string();
+                player_object.hunger = "14999".to_string();
+                player_object.thirst = "9999".to_string();
+                player_object.stamina = "9999".to_string();
                 let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
                 let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
                 ftp_stream.put(&file_name, &mut reader).await.unwrap();
+                /*
+                so few things for injections.    we only want patreons to be able to inject as adult non survival.  and everyone else can spawn in as non survival juvies but only males
+                */
                 // TODO: List which dino got replaced with what
                 // and maybe add a confirmation step
-                let reply_msg = format!("Dino {} injected, gender: {}", dino.character_class.to_string(), gender);
-                msg.reply(&ctx, reply_msg).await.expect("Unable to reply to message");
-                found = true;
+                // let content = MessageBuilder::new()
+                //     .mention(&msg.author)
+                //     .push("Test lol")
+                //     .build();
+                //     let embed = Embed::fake(|e| e
+                //         .title("Embed title")
+                //         .description("Making a basic embed")
+                //         .field("a field", "Has some content", true));
+                // let reply_msg = format!("Dino {} injected, gender: {}", dino.character_class.to_string(), gender);
+                // msg.reply(&ctx, embed).await.expect("Unable to reply to message");
+                let guild_id = msg.guild_id.unwrap().0;
+                let balance = Unbelievabot::check_balance(guild_id, msg.author.id.0).await.expect("Unable to fetch balance");
+                if balance.cash < dino.cost {
+                    msg.reply(&ctx, "Not enough cash to buy that dino").await.unwrap();
+                    break;
+                }
+                let user_balance = Unbelievabot::remove_cash(guild_id, msg.author.id.0, dino.cost, 0).await.expect("Unable to remove cash");
+                let replace_message = format!("Your {} was replaced with an injected {}", previous_dino, dino.display_name);
+                let _ = msg.channel_id.send_message(&ctx.http, |m| {
+                    m.embed(|e| {
+                        e.title("Dino injected");
+                        e.description(replace_message);
+                        e.author(|a| {
+                            a.name(&msg.author.name);
+                            a.icon_url(msg.author.avatar_url().unwrap());
+
+                            a
+                        });
+                        e.fields(vec![
+                            ("Cash", format!("{}", user_balance.cash), true),
+                            ("Bank", format!("{}", user_balance.bank), true),
+                        ]);
+                        e.colour(Colour::from_rgb(0, 100, 200));
+                        e.footer(|f| {
+                            f.text(format!("{} Points were withdrawn from your cash", dino.cost));
+    
+                            f
+                        });
+    
+                        e
+                    });
+                    // m.reactions(reactions.into_iter());
+                    // m.embed(|e| {
+                    //     e.title("Dino injected");
+                    //     e.description("This is a description");
+                    //     e.author(|a| {
+                    //         a.name(&msg.author.name);
+                    //         a.icon_url(msg.author.avatar_url().unwrap());
+
+                    //         a
+                    //     });
+                    //     e.colour(Colour::from_rgb(0, 255, 0));
+                    //     // e.image("attachment://ferris_eyes.png");
+                    //     e.fields(vec![
+                    //         ("This is the first field", "This is a field body", true),
+                    //         ("This is the second field", "Both of these fields are inline", true),
+                    //     ]);
+                    //     e.field("This is the third field", "This is not an inline field", false);
+                    //     e.footer(|f| {
+                    //         f.text("This is a footer");
+    
+                    //         f
+                    //     });
+    
+                    //     e
+                    // });
+                    // m.add_file(AttachmentType::Path(Path::new("./ferris_eyes.png")));
+                    m
+                }).await;
                 break;
             }
         }

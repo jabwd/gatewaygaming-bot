@@ -1,6 +1,4 @@
-use serde::de::Error;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Player {
@@ -9,23 +7,27 @@ pub struct Player {
     #[serde(rename = "DNA")]
     pub dna: String,
     #[serde(rename = "Location_Thenyaw_Island")]
-    pub location_thenyaw_island: String,
+    pub location_thenyaw_island: Option<String>,
     #[serde(rename = "Rotation_Thenyaw_Island")]
-    pub rotation_thenyaw_island: String,
+    pub rotation_thenyaw_island: Option<String>,
+    #[serde(rename = "Location_Isle_V3")]
+    pub location_isle_v3: Option<String>,
+    #[serde(rename="Rotation_Isle_V3")]
+    pub rotation_isle_v3: Option<String>,
     #[serde(rename = "Growth")]
-    pub growth: f32,
+    pub growth: String,
     #[serde(rename = "Hunger")]
-    pub hunger: i32,
+    pub hunger: String,
     #[serde(rename = "Thirst")]
-    pub thirst: i32,
+    pub thirst: String,
     #[serde(rename = "Stamina")]
-    pub stamina: i32,
+    pub stamina: String,
     #[serde(rename = "Health")]
-    pub health: i32,
+    pub health: String,
     #[serde(rename = "BleedingRate")]
-    pub bleeding_rate: f32,
+    pub bleeding_rate: String,
     #[serde(rename = "Oxygen")]
-    pub oxygen: i32,
+    pub oxygen: String,
     #[serde(rename = "bGender")]
     pub gender: bool, // male = false, female = true
     #[serde(rename = "bIsResting")]
@@ -39,9 +41,13 @@ pub struct Player {
     #[serde(rename = "UnlockedCharacters")]
     pub unlocked_characters: String,
     #[serde(rename = "CameraRotation_Thenyaw_Island")]
-    pub camera_rotation_thenyaw_island: String,
+    pub camera_rotation_thenyaw_island: Option<String>,
     #[serde(rename = "CameraDistance_Thenyaw_Island")]
-    pub camera_distance_thenyaw_island: String,
+    pub camera_distance_thenyaw_island: Option<String>,
+    #[serde(rename="CameraRotation_Isle_V3")]
+    pub camera_rotation_isle_v3: Option<String>,
+    #[serde(rename="CameraDistance_Isle_v3")]
+    pub camera_distance_isle_v3: Option<String>,
     #[serde(rename = "SkinPaletteSection1")]
     pub skin_palette_section1: i32,
     #[serde(rename = "SkinPaletteSection2")]
@@ -64,23 +70,27 @@ impl Player {
         {
             character_class,
             dna: "".to_string(),
-            location_thenyaw_island: "".to_string(),
-            rotation_thenyaw_island: "".to_string(),
-            growth: 1.0,
-            hunger: 9999,
-            thirst: 9999,
-            stamina: 9999,
-            health: 9999,
-            bleeding_rate: 0.0,
-            oxygen: 40,
+            location_thenyaw_island: None,
+            rotation_thenyaw_island: None,
+            location_isle_v3: None,
+            rotation_isle_v3: None,
+            growth: "1.0".to_string(),
+            hunger: "9999".to_string(),
+            thirst: "9999".to_string(),
+            stamina: "9999".to_string(),
+            health: "9999".to_string(),
+            bleeding_rate: "0.0".to_string(),
+            oxygen: "40".to_string(),
             gender,
             is_resting: false,
             broken_legs: false,
             progression_points: "0.0".to_string(),
             progression_tier: "1.0".to_string(),
             unlocked_characters: "".to_string(),
-            camera_rotation_thenyaw_island: "".to_string(),
-            camera_distance_thenyaw_island: "".to_string(),
+            camera_rotation_thenyaw_island: None,
+            camera_distance_thenyaw_island: None,
+            camera_rotation_isle_v3: None,
+            camera_distance_isle_v3: None,
             skin_palette_section1: 63,
             skin_palette_section2: 26,
             skin_palette_section3: 29,
@@ -91,11 +101,6 @@ impl Player {
         };
         
         player_save
-    }
-
-    pub fn json_string(&self) -> String {
-        let res = serde_json::to_string(&self);
-        return res.unwrap();
     }
 }
 

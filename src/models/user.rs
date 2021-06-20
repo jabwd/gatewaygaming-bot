@@ -19,7 +19,7 @@ pub struct User {
 pub struct NewUser<'a> {
     pub discord_id: &'a str,
     pub last_active: &'a DateTime<Utc>,
-    pub steam_id: &'a str,
+    pub steam_id: Option<&'a str>,
 }
 
 impl User {
@@ -36,7 +36,7 @@ impl User {
                 let new_user = NewUser {
                     discord_id: &discord_user_id_str,
                     last_active: &Utc::now(),
-                    steam_id: "",
+                    steam_id: None,
                 };
                 let result = diesel::insert_into(users)
                     .values(&new_user)

@@ -13,6 +13,7 @@ uuid = { version = "0.8", features = ["v4"] }
 diesel = { version = "1.4.4", features = ["postgres", "r2d2", "numeric", "chrono"] }
 redis = { version = "0.20.0", features = ["tokio-comp", "tokio-native-tls-comp"] }
 async_ftp = { version = "5.0.0", features = ["secure"] }
+reqwest = { version = "0.11", features = ["json"] }
 
 [dependencies.serenity]
 version = "0.10.2"
