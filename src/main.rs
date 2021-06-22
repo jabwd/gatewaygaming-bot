@@ -4,6 +4,8 @@ extern crate dotenv;
 extern crate chrono;
 
 // use crate::diesel::Connection;
+use serenity::futures::StreamExt;
+use serenity::model::prelude::MembersIter;
 use diesel::{
     PgConnection,
     r2d2::{ ConnectionManager, Pool },
@@ -74,25 +76,25 @@ struct General;
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn ready(&self, _ctx: Context, _ready: Ready) {
-        println!("{{GG}} Bot is ready");
-        // println!("=> Connected to discord, loading guild data…");
-        // if let Ok(guilds) = ready.user.guilds(&ctx).await {
-        //     for (index, guild) in guilds.into_iter().enumerate() {
-        //         println!("{}: {}:{}", index, guild.name, guild.id);
-        //         let mut members = MembersIter::<Http>::stream(&ctx, guild.id).boxed();
-        //         while let Some(member_result) = members.next().await {
-        //             match member_result {
-        //                 Ok(member) => println!(
-        //                     "{} is {}",
-        //                     member,
-        //                     member.display_name()
-        //                 ),
-        //                 Err(error) => eprintln!("Error listing members: {}", error),
-        //             }
-        //         }
-        //     }
-        // }
+    async fn ready(&self, ctx: Context, ready: Ready) {
+        println!("{{GG}} Bot is ready for rulebreaks and general scumbaggery");
+        println!("=> Connected to discord, loading guild data…");
+        if let Ok(guilds) = ready.user.guilds(&ctx).await {
+            for (index, guild) in guilds.into_iter().enumerate() {
+                println!("{}: {}:{}", index, guild.name, guild.id);
+                let mut members = MembersIter::<Http>::stream(&ctx, guild.id).boxed();
+                while let Some(member_result) = members.next().await {
+                    match member_result {
+                        Ok(member) => println!(
+                            "{} is {}",
+                            member,
+                            member.display_name()
+                        ),
+                        Err(error) => eprintln!("Error listing members: {}", error),
+                    }
+                }
+            }
+        }
     }
 
     async fn message(&self, ctx: Context, msg: Message) {
@@ -135,10 +137,13 @@ async fn main() {
     let ftp_password = env::var("FTP_PASSWORD")
         .expect("FTP_PASSWORD must be set");
 
+    println!("=> Connecting to FTP...");
     let mut ftp_stream = FtpStream::connect(ftp_address).await
         .expect("Unable to connect to FTP server");
+    println!("=> Authenticating FTP");
     ftp_stream.login(&ftp_username, &ftp_password).await.unwrap();
     ftp_stream.cwd("172.96.161.98_14000/TheIsle/Saved/Databases/Survival/Players").await.unwrap();
+    println!("=> FTP Connected and ready");
 
     // Set up PSQL connection manager and connection pool
     let manager: ConnectionManager<PgConnection> = ConnectionManager::new(database_url);
@@ -182,6 +187,7 @@ async fn main() {
 
     let shard_manager = client.shard_manager.clone();
 
+    println!("=> Starting discord service");
     tokio::spawn(async move {
         tokio::signal::ctrl_c().await.expect("Could not register SIGKILL handler");
         shard_manager.lock().await.shutdown_all().await;

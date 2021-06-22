@@ -1,4 +1,9 @@
+use crate::models::dino::Dino;
 use serde::{Deserialize, Serialize};
+
+const MAX_HEALTH: &str = "99999";
+const MAX_HUNGER: &str = "14999";
+const MAX_GENERIC: &str = "9999";
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Player {
@@ -75,10 +80,10 @@ impl Player {
             location_isle_v3: None,
             rotation_isle_v3: None,
             growth: "1.0".to_string(),
-            hunger: "9999".to_string(),
+            hunger: "14999".to_string(),
             thirst: "9999".to_string(),
             stamina: "9999".to_string(),
-            health: "9999".to_string(),
+            health: "99999".to_string(),
             bleeding_rate: "0.0".to_string(),
             oxygen: "40".to_string(),
             gender,
@@ -101,6 +106,16 @@ impl Player {
         };
         
         player_save
+    }
+
+    pub fn update_from_dino(&mut self, dino: &Dino, gender: bool) {
+        self.gender = gender;
+        self.character_class = dino.character_class.to_string();
+        self.growth = dino.growth.to_string();
+        self.health = MAX_HEALTH.to_string();
+        self.hunger = MAX_HUNGER.to_string();
+        self.thirst = MAX_GENERIC.to_string();
+        self.stamina = MAX_GENERIC.to_string();
     }
 }
 

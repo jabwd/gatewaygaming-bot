@@ -1,2 +1,3 @@
 pub mod unbelievabot;
-pub mod msg_service;
+pub mod message;
+pub mod ftp;

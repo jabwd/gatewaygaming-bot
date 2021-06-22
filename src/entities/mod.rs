@@ -1,2 +1,2 @@
-pub mod player_save;
+pub mod player;
 pub mod unbelievabot;
