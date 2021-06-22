@@ -71,6 +71,7 @@ struct Handler;
     random_dino,
     slay_dino,
     register,
+    request_dino,
 )]
 struct General;
 
@@ -78,33 +79,33 @@ struct General;
 impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{{GG}} Bot is ready for rulebreaks and general scumbaggery");
-        println!("=> Connected to discord, loading guild data…");
-        if let Ok(guilds) = ready.user.guilds(&ctx).await {
-            for (index, guild) in guilds.into_iter().enumerate() {
-                println!("{}: {}:{}", index, guild.name, guild.id);
-                let mut members = MembersIter::<Http>::stream(&ctx, guild.id).boxed();
-                while let Some(member_result) = members.next().await {
-                    match member_result {
-                        Ok(member) => println!(
-                            "{} is {}",
-                            member,
-                            member.display_name()
-                        ),
-                        Err(error) => eprintln!("Error listing members: {}", error),
-                    }
-                }
-            }
-        }
+        // println!("=> Connected to discord, loading guild data…");
+        // if let Ok(guilds) = ready.user.guilds(&ctx).await {
+        //     for (index, guild) in guilds.into_iter().enumerate() {
+        //         println!("{}: {}:{}", index, guild.name, guild.id);
+        //         let mut members = MembersIter::<Http>::stream(&ctx, guild.id).boxed();
+        //         while let Some(member_result) = members.next().await {
+        //             match member_result {
+        //                 Ok(member) => println!(
+        //                     "{} is {}",
+        //                     member,
+        //                     member.display_name()
+        //                 ),
+        //                 Err(error) => eprintln!("Error listing members: {}", error),
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     async fn message(&self, ctx: Context, msg: Message) {
-        let data = ctx.data.read().await;
-        {
-            let db = data.get::<DbPool>().unwrap();
-            let user = models::user::User::get(msg.author.id, &db);
+        // let data = ctx.data.read().await;
+        // {
+        //     let db = data.get::<DbPool>().unwrap();
+        //     let user = models::user::User::get(msg.author.id, &db);
 
-            models::user::User::update_last_active(user.id, &db);
-        }
+        //     models::user::User::update_last_active(user.id, &db);
+        // }
         // match msg.member {
         //     Some(member) => println!("User that sent the message: {:?}", member),
         //     None => println!("No use associated with message"),
@@ -126,6 +127,10 @@ async fn main() {
     dotenv::dotenv().expect("Failed to load environment variables from .env file");
 
     // Load in all the env variables we will be using before setting up anything else
+    #[cfg(debug_assertions)]
+    let token = env::var("DISCORD_DEV_TOKEN")
+        .expect("Expected a discord authentication token in the environment");
+    #[cfg(not(debug_assertions))]
     let token = env::var("DISCORD_TOKEN")
         .expect("Expected a discord authentication token in the environment");
     let database_url = env::var("DATABASE_URL")
@@ -165,6 +170,14 @@ async fn main() {
     };
 
     // Create the framework
+    #[cfg(debug_assertions)]
+    let framework = StandardFramework::new()
+        .configure(|c| c
+            .owners(owners)
+            .prefix("ggdev."))
+        .group(&GENERAL_GROUP);
+
+    #[cfg(not(debug_assertions))]
     let framework = StandardFramework::new()
         .configure(|c| c
             .owners(owners)

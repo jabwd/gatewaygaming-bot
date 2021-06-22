@@ -126,8 +126,8 @@ impl Dino {
             Dino::new("Acro", "Acrocanthosaurus", vec!["acro", "acrocanthosaurus"], true, 60_000, "1.0"),
             Dino::new("AcroJuv", "Acro juvie", vec!["acro-juvie"], true, 0, "0.1"),
 
-            Dino::new("Albert", "Albertosaurus", vec!["alberto-free", "albertosaurus-free"], true, 0, "0.4"),
-            Dino::new("Albert", "Albertosaurus", vec!["alberto", "albertosaurus"], true, 50_000, "1.0"),
+            Dino::new("Albert", "Albertosaurus", vec!["albert-free", "alberto-free", "albertosaurus-free"], true, 0, "0.4"),
+            Dino::new("Albert", "Albertosaurus", vec!["albert", "alberto", "albertosaurus"], true, 50_000, "1.0"),
 
             Dino::new("Bary", "Baryonyx", vec!["bary", "baryonyx"], true, 25_000, "1.0"),
             Dino::new("BaryJuv", "Baryonyx juvie", vec!["bary-juvie"], true, 0, "0.5"),

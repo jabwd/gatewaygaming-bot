@@ -1,3 +1,4 @@
+use crate::services::message::MessageResponder;
 use crate::services::unbelievabot::*;
 use serenity::utils::Colour;
 use crate::models::dino::Dino;
@@ -22,36 +23,44 @@ use crate::{
 #[aliases("reg")]
 #[only_in("guilds")]
 async fn register(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let steam_id = match args.single::<String>() {
-        Ok(steam_id) => steam_id,
-        Err(_) => "".to_string(),
-    };
-    if steam_id.len() != 17 {
-        msg.reply(&ctx, "invalid steam id").await.expect("Unable to reply to message");
-        return Ok(());
-    }
+  let responder = MessageResponder {
+    ctx,
+    msg,
+  };
 
-    let data = ctx.data.read().await;
-    {
-        let db = data.get::<DbPool>().unwrap();
-        let user = User::get(msg.author.id, &db);
+  let steam_id = match args.single::<String>() {
+    Ok(steam_id) => steam_id,
+    Err(_) => "".to_string(),
+  };
+  if steam_id.len() != 17 {
+    responder.error("Invalid steamID", "Please fill in a Steam64 ID (xxxxxxxxxxxxxxxxx)").await;
+    return Ok(());
+  }
 
-        User::update_steam_id(user.id, &db, &steam_id);
-        msg.delete(&ctx).await.expect("Unable to delete sensitive message content");
-        // let channel = match msg.channel_id.to_channel(&ctx).await {
-        //     Ok(channel) => channel,
-        //     Err(why) => {
-        //         println!("Error getting channel {:?}", why);
-        //         return Ok(());
-        //     },
-        // };
-        if let Err(why) = msg.channel_id.say(&ctx.http, "Steam ID registered").await {
-            println!("Unable to send message to channel {:?}", why);
-        }
-        
-        // msg.reply(&ctx, "steam id saved").await.expect("Unable to reply to message");
-    }
-    Ok(())
+  let data = ctx.data.read().await;
+  {
+    let db = data.get::<DbPool>().unwrap();
+    let user = User::get(msg.author.id, &db);
+
+    User::update_steam_id(user.id, &db, &steam_id);
+  }
+
+  msg.delete(&ctx).await.expect("Unable to delete sensitive message content");
+  responder.success_norply("Steam ID saved", "Your SteamID was registered, and you can now inject dino's").await;
+  Ok(())
+}
+
+#[command]
+#[aliases("rd", "requestdino")]
+#[only_in("guilds")]
+async fn request_dino(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+  let responder = MessageResponder {
+    ctx,
+    msg,
+  };
+
+  responder.error("Not implemented", "this command has not been finished yet").await;
+  Ok(())
 }
 
 #[command]

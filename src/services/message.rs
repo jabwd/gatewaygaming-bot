@@ -1,9 +1,9 @@
 use serenity::{
-  prelude::*,
   model::{
       channel::Message,
   },
-  framework::standard::{ Args, CommandResult, macros::command },
+  prelude::*,
+  utils::Colour
 };
 
 pub struct MessageResponder<'a> {
@@ -11,6 +11,117 @@ pub struct MessageResponder<'a> {
   pub msg: &'a Message,
 }
 
-// impl MessageResponder<'a> {
+impl MessageResponder<'_> {
+  pub async fn error<D>(
+    &self,
+    title: D,
+    message: D,
+  ) where D: ToString  {
+    let _ = self.msg.channel_id.send_message(&self.ctx.http, |m| {
+      m.embed(|e| {
+          e.title(title);
+          e.description(message);
+          e.colour(Colour::from_rgb(200, 60, 20));
+          e
+      });
+      m.reference_message(self.msg);
+      m
+    }).await;
+  }
 
-// }
+  pub async fn success_norply<D>(
+    &self,
+    title: D,
+    message: D,
+  ) where D: ToString  {
+    let _ = self.msg.channel_id.send_message(&self.ctx.http, |m| {
+      m.embed(|e| {
+          e.title(title);
+          e.description(message);
+          e.colour(Colour::from_rgb(50, 220, 50));
+          e
+      });
+      m
+    }).await;
+  }
+
+  pub async fn success<D>(
+    &self,
+    title: D,
+    message: D,
+  ) where D: ToString  {
+    let _ = self.msg.channel_id.send_message(&self.ctx.http, |m| {
+      m.embed(|e| {
+          e.title(title);
+          e.description(message);
+          e.colour(Colour::from_rgb(50, 220, 50));
+          e
+      });
+      m.reference_message(self.msg);
+      m
+    }).await;
+  }
+
+  pub async fn respond_injection(
+    ctx: &Context,
+    msg: &Message,
+    title: &String,
+    message: &String,
+    cash: i64,
+    bank: i64,
+    cost: i64
+  ) {
+    let _ = msg.channel_id.send_message(&ctx.http, |m| {
+      m.embed(|e| {
+          e.title(title);
+          e.description(message);
+          e.author(|a| {
+              a.name(&msg.author.name);
+              a.icon_url(msg.author.avatar_url().unwrap());
+
+              a
+          });
+          e.fields(vec![
+              ("Cash", format!("{}", cash), true),
+              ("Bank", format!("{}", bank), true),
+          ]);
+          e.colour(Colour::from_rgb(0, 100, 200));
+          e.footer(|f| {
+              f.text(format!("{} Points were withdrawn from your cash", cost));
+
+              f
+          });
+
+          e
+      });
+      m
+    }).await;
+  }
+}
+
+// m.reactions(reactions.into_iter());
+        // m.embed(|e| {
+        //     e.title("Dino injected");
+        //     e.description("This is a description");
+        //     e.author(|a| {
+        //         a.name(&msg.author.name);
+        //         a.icon_url(msg.author.avatar_url().unwrap());
+
+        //         a
+        //     });
+        //     e.colour(Colour::from_rgb(0, 255, 0));
+        //     // e.image("attachment://ferris_eyes.png");
+        //     e.fields(vec![
+        //         ("This is the first field", "This is a field body", true),
+        //         ("This is the second field", "Both of these fields are inline", true),
+        //     ]);
+        //     e.field("This is the third field", "This is not an inline field", false);
+        //     e.footer(|f| {
+        //         f.text("This is a footer");
+
+        //         f
+        //     });
+
+        //     e
+        // });
+        // m.add_file(AttachmentType::Path(Path::new("./ferris_eyes.png")));
