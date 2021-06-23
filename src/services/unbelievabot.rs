@@ -22,7 +22,6 @@ impl Unbelievabot {
   pub async fn remove_cash(guild_id: u64, user_id: u64, remove_cash: i64, remove_bank: i64) -> Result<UserResponseEntity, reqwest::Error> {
     let key = env::var("UNBELIEVABOT_TOKEN").expect("Expected a unbelievabot api key in this environment");
     let url = format!("{}/guilds/{}/users/{}", BASE_URL, guild_id, user_id);
-    println!("URL: {}", url);
     let modify_request = UserModifyBalanceEntity
     {
       cash: Some(-1 * remove_cash),

@@ -62,23 +62,21 @@ impl MessageResponder<'_> {
     }).await;
   }
 
-  pub async fn respond_injection(
-    ctx: &Context,
-    msg: &Message,
-    title: &String,
-    message: &String,
+  pub async fn respond_injection<D>(
+    &self,
+    title: D,
+    message: D,
     cash: i64,
     bank: i64,
     cost: i64
-  ) {
-    let _ = msg.channel_id.send_message(&ctx.http, |m| {
+  ) where D: ToString {
+    let _ = self.msg.channel_id.send_message(&self.ctx.http, |m| {
       m.embed(|e| {
           e.title(title);
           e.description(message);
           e.author(|a| {
-              a.name(&msg.author.name);
-              a.icon_url(msg.author.avatar_url().unwrap());
-
+              a.name(&self.msg.author.name);
+              a.icon_url(self.msg.author.avatar_url().unwrap());
               a
           });
           e.fields(vec![
@@ -88,10 +86,8 @@ impl MessageResponder<'_> {
           e.colour(Colour::from_rgb(0, 100, 200));
           e.footer(|f| {
               f.text(format!("{} Points were withdrawn from your cash", cost));
-
               f
           });
-
           e
       });
       m

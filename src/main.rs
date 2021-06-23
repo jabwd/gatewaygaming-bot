@@ -71,7 +71,8 @@ struct Handler;
     random_dino,
     slay_dino,
     register,
-    request_dino,
+    dino_request,
+    random_dino,
 )]
 struct General;
 

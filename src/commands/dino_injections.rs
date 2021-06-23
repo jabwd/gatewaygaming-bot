@@ -7,6 +7,7 @@ use serenity::{
     prelude::*,
     model::{
         channel::Message,
+        guild::GuildContainer,
     },
     framework::standard::{ Args, CommandResult, macros::command },
 };
@@ -51,15 +52,106 @@ async fn register(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
 }
 
 #[command]
-#[aliases("rd", "requestdino")]
+#[aliases("dr", "dinorequest")]
 #[only_in("guilds")]
-async fn request_dino(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn dino_request(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
   let responder = MessageResponder {
     ctx,
     msg,
   };
 
-  responder.error("Not implemented", "this command has not been finished yet").await;
+  let dino_key_str = match args.single::<String>() {
+    Ok(dino_str) => dino_str,
+    Err(_) => "".to_string(),
+  };
+
+  if dino_key_str.len() == 0 {
+    responder.error("Dino not found", "try one of these: alberto|acro|bary|stego|anky|austro|herrera").await;
+    return Ok(());
+  }
+
+  let list = Dino::request_dino_list();
+  let mut dino_object: Option<&Dino> = None;
+  for dino in list.iter() {
+    for key in dino.aliases.iter() {
+      if key == &dino_key_str {
+        dino_object = Some(dino);
+        break;
+      }
+    }
+  }
+
+  let user = get_message_user(&ctx, &msg).await;
+  let steam_id = match user.steam_id {
+    Some(id) => id,
+    None => {
+      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+      return Ok(());
+    }
+  };
+  if steam_id.len() != 17 {
+    responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+    return Ok(());
+  }
+
+  let dino = match dino_object {
+    Some(d) => d,
+    None => {
+      responder.error("Dino not found", "try one of these: alberto|acro|bary|stego|anky|austro|herrera").await;
+      return Ok(());
+    }
+  };
+
+  if dino.enabled == false {
+    responder.error("Dinosaur not available", "That dinosaur is currently not available for injection").await;
+    return Ok(());
+  }
+
+  let gender = false;
+
+  let ftp_stream_lock = {
+    let data_read = ctx.data.read().await;
+    data_read.get::<FtpStreamContainer>().expect("Expected FTP stream").clone()
+  };
+
+  let file_name = format!("{}.json", steam_id);
+  let mut ftp_stream = ftp_stream_lock.lock().await;
+  let file_list = ftp_stream.nlst(None).await.unwrap();
+
+  let mut found = false;
+  for file in file_list {
+    if file == file_name {
+      found = true;
+      let mut read_cursor = ftp_stream.simple_retr(&file).await.unwrap();
+      let mut player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
+      let previous_dino = player_object.character_class.to_string();
+      player_object.update_from_dino(&dino, gender);
+      let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
+      let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
+      ftp_stream.put(&file_name, &mut reader).await.unwrap();
+
+      let guild_id = msg.guild_id.unwrap().0;
+      let balance = Unbelievabot::check_balance(guild_id, msg.author.id.0).await.expect("Unable to fetch balance");
+      if balance.cash < dino.cost {
+          responder.error("Not enough points", "You do not have enough cash points to inject that dino").await;
+          break;
+      }
+      // let user_balance = Unbelievabot::remove_cash(guild_id, msg.author.id.0, dino.cost, 0).await.expect("Unable to remove cash");
+      let replace_message = format!("Your {} was replaced with an injected {}", previous_dino, dino.display_name);
+      responder.respond_injection(
+        "Dino injected",
+        &replace_message,
+        balance.cash,
+        balance.bank,
+        dino.cost,
+      ).await;
+      break;
+    }
+  }
+
+  if found == false {
+    responder.error("Player not found", "Please make sure you log in with a random dinosaur on the server first before injecting anything.").await;
+  }
   Ok(())
 }
 
@@ -67,189 +159,265 @@ async fn request_dino(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
 #[aliases("cashbuy", "cb")]
 #[only_in("guilds")]
 async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    // cashbuy rex male
-    let dino_key_str = match args.single::<String>() {
-        Ok(dino_str) => dino_str,
-        Err(_) => "".to_string(),
-    };
+  let responder = MessageResponder {
+    ctx,
+    msg,
+  };
 
-    let gender_str = match args.single::<String>() {
-        Ok(gender_str) => gender_str,
-        Err(_) => "".to_string(),
-    };
+  let dino_key_str = match args.single::<String>() {
+    Ok(dino_str) => dino_str,
+    Err(_) => "".to_string(),
+  };
 
-    if dino_key_str.len() == 0 {
-        msg.reply(&ctx, "Usage: !cb {dino} {gender}").await.expect("Unable to reply to message");
-        return Ok(());
+  let gender_str = match args.single::<String>() {
+      Ok(gender_str) => gender_str,
+      Err(_) => "".to_string(),
+  };
+
+  if dino_key_str.len() == 0 {
+    responder.error("Using cashbuy", "gg.cb dino m|f").await;
+    return Ok(());
+  }
+
+  if gender_str.len() == 0 {
+    responder.error("Using cashbuy", "gg.cb dino m|f").await;
+    return Ok(());
+  }
+
+  let list = Dino::list();
+  let mut dino_object: Option<&Dino> = None;
+  for dino in list.iter() {
+    for key in dino.aliases.iter() {
+      if key == &dino_key_str {
+        dino_object = Some(dino);
+        break;
+      }
     }
+  }
 
-    if gender_str.len() == 0 {
-        msg.reply(&ctx, "Usage: !cb {dino} {gender}").await.expect("Unable to reply to message");
-        return Ok(());
+  let user = get_message_user(&ctx, &msg).await;
+  let steam_id = match user.steam_id {
+    Some(id) => id,
+    None => {
+      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+      return Ok(());
     }
+  };
+  if steam_id.len() != 17 {
+    responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+    return Ok(());
+  }
 
-    let list = Dino::list();
-
-    let mut dino_object: Option<&Dino> = None;
-
-    for dino in list.iter() {
-        for key in dino.aliases.iter() {
-            if key == &dino_key_str {
-                dino_object = Some(dino);
-                break;
-            }
-        }
+  let dino = match dino_object {
+    Some(d) => d,
+    None => {
+      
+      // responder.error("Dinosaur not found", "Please use one of the following dinosaurs: ").await;
+      return Ok(());
     }
+  };
 
-    let dino = match dino_object {
-        Some(d) => d,
-        None => {
-            msg.reply(&ctx, "Dino not found").await.expect("Unable to reply to message");;
-            return Ok(());
-        }
-    };
+  if dino.enabled == false {
+    responder.error("Dinosaur not available", "That dinosaur is currently not available for injection").await;
+    return Ok(());
+  }
 
-    let gender = match gender_str.as_str() {
-        "m" => false,
-        "male" => false,
-        "f" => true,
-        "female" => true,
-        "fem" => true,
-        _ => {
-            msg.reply(&ctx, "Usage: !cb {dino} m|f").await.expect("Unable to reply to message");
-            return Ok(());
-        },
-    };
+  let gender = match gender_str.as_str() {
+      "m" => false,
+      "male" => false,
+      "f" => true,
+      "female" => true,
+      "fem" => true,
+      _ => {
+          msg.reply(&ctx, "Usage: gg.cb dinosaur m|f").await.expect("Unable to reply to message");
+          return Ok(());
+      },
+  };
 
-    let ftp_stream_lock = {
-        let data_read = ctx.data.read().await;
-        data_read.get::<FtpStreamContainer>().expect("Expected FTP stream").clone()
-    };
+  let ftp_stream_lock = {
+    let data_read = ctx.data.read().await;
+    data_read.get::<FtpStreamContainer>().expect("Expected FTP stream").clone()
+  };
 
-    let user = get_message_user(&ctx, &msg).await;
-    if let Some(steam_id) = user.steam_id {
-        if steam_id.len() != 17 {
-            msg.reply(&ctx, "No valid steam ID registered for this user").await.expect("unable to reply to msg");
-            return Ok(());
-        }
-        let mut ftp_stream = ftp_stream_lock.lock().await;
+  let file_name = format!("{}.json", steam_id);
+  let mut ftp_stream = ftp_stream_lock.lock().await;
+  let file_list = ftp_stream.nlst(None).await.unwrap();
 
-        let file_list = ftp_stream.nlst(None).await.unwrap();
-        let file_name = format!("{}.json", steam_id);
+  let mut found = false;
+  for file in file_list {
+    if file == file_name {
+      found = true;
+      let mut read_cursor = ftp_stream.simple_retr(&file).await.unwrap();
+      let mut player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
+      let previous_dino = player_object.character_class.to_string();
+      player_object.update_from_dino(&dino, gender);
+      let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
+      let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
+      ftp_stream.put(&file_name, &mut reader).await.unwrap();
 
-        let mut found = false;
-        for file in file_list {
-            if file == file_name {
-                found = true;
-                let mut read_cursor = ftp_stream.simple_retr(&file).await.unwrap();
-                let mut player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
-                let previous_dino = player_object.character_class.to_string();
-                player_object.update_from_dino(&dino, gender);
-                let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
-                let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
-                ftp_stream.put(&file_name, &mut reader).await.unwrap();
-
-                /*
-                so few things for injections.    we only want patreons to be able to inject as adult non survival.  and everyone else can spawn in as non survival juvies but only males
-                */
-                let guild_id = msg.guild_id.unwrap().0;
-                let balance = Unbelievabot::check_balance(guild_id, msg.author.id.0).await.expect("Unable to fetch balance");
-                if balance.cash < dino.cost {
-                    msg.reply(&ctx, "Not enough cash to buy that dino").await.unwrap();
-                    break;
-                }
-                // let previous_dino = player_object.character_class;
-                let user_balance = Unbelievabot::remove_cash(guild_id, msg.author.id.0, dino.cost, 0).await.expect("Unable to remove cash");
-                let replace_message = format!("Your {} was replaced with an injected {}", previous_dino, dino.display_name);
-                let _ = msg.channel_id.send_message(&ctx.http, |m| {
-                    m.embed(|e| {
-                        e.title("Dino injected");
-                        e.description(replace_message);
-                        e.author(|a| {
-                            a.name(&msg.author.name);
-                            a.icon_url(msg.author.avatar_url().unwrap());
-
-                            a
-                        });
-                        e.fields(vec![
-                            ("Cash", format!("{}", user_balance.cash), true),
-                            ("Bank", format!("{}", user_balance.bank), true),
-                        ]);
-                        e.colour(Colour::from_rgb(0, 100, 200));
-                        e.footer(|f| {
-                            f.text(format!("{} Points were withdrawn from your cash", dino.cost));
-    
-                            f
-                        });
-    
-                        e
-                    });
-                    // m.reactions(reactions.into_iter());
-                    // m.embed(|e| {
-                    //     e.title("Dino injected");
-                    //     e.description("This is a description");
-                    //     e.author(|a| {
-                    //         a.name(&msg.author.name);
-                    //         a.icon_url(msg.author.avatar_url().unwrap());
-
-                    //         a
-                    //     });
-                    //     e.colour(Colour::from_rgb(0, 255, 0));
-                    //     // e.image("attachment://ferris_eyes.png");
-                    //     e.fields(vec![
-                    //         ("This is the first field", "This is a field body", true),
-                    //         ("This is the second field", "Both of these fields are inline", true),
-                    //     ]);
-                    //     e.field("This is the third field", "This is not an inline field", false);
-                    //     e.footer(|f| {
-                    //         f.text("This is a footer");
-    
-                    //         f
-                    //     });
-    
-                    //     e
-                    // });
-                    // m.add_file(AttachmentType::Path(Path::new("./ferris_eyes.png")));
-                    m
-                }).await;
-                break;
-            }
-        }
-
-        if found == false {
-            let player_object = Player::new("Anky".to_string(), true);
-            let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
-            let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
-            ftp_stream.put(&file_name, &mut reader).await.unwrap();
-            msg.reply(&ctx, "Dino injected").await.expect("Unable to reply to message");
-        }
-    } else {
-        msg.reply(&ctx, "Link steam ID first").await.expect("unable to reply to msg");
+      let guild_id = msg.guild_id.unwrap().0;
+      let balance = Unbelievabot::check_balance(guild_id, msg.author.id.0).await.expect("Unable to fetch balance");
+      if balance.cash < dino.cost {
+          responder.error("Not enough points", "You do not have enough cash points to inject that dino").await;
+          break;
+      }
+      let user_balance = Unbelievabot::remove_cash(guild_id, msg.author.id.0, dino.cost, 0).await.expect("Unable to remove cash");
+      let replace_message = format!("Your {} was replaced with an injected {}", previous_dino, dino.display_name);
+      responder.respond_injection(
+        "Dino injected",
+        &replace_message,
+        user_balance.cash,
+        user_balance.bank,
+        dino.cost,
+      ).await;
+      break;
     }
-    Ok(())
+  }
+
+  if found == false {
+    responder.error("Player not found", "Please make sure you log in with a random dinosaur on the server first before injecting anything.").await;
+  }
+  Ok(())
 }
 
 #[command]
 #[aliases("inject", "ij")]
 #[only_in("guilds")]
-async fn admin_inject(ctx: &Context, msg: &Message) -> CommandResult {
-    // let mut data = ctx.data.read().await;
-    // {
-    //     let ftp_stream = data.get::<FtpStreamContainer>().unwrap();
-    // }
+async fn admin_inject(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+  let responder = MessageResponder {
+    ctx,
+    msg,
+  };
 
-    msg.reply(&ctx, "Reading balance").await.expect("Unable to reply to message");
-    Ok(())
+  let guild_id = msg.guild_id.unwrap().0;
+  // let guild = msg.guild(&ctx).await.unwrap();
+  // let author = msg.author.has_role(&ctx, GuildContainer::Guild(guild), 0);
+
+  if msg.mentions.len() == 1{
+    responder.error("No user mentioned", "Please mention the user to forcefully inject, gg.ij @user dino gender").await;
+    return Ok(());
+  }
+  let target_user = &msg.mentions[0];
+
+  let dino_key_str = match args.single::<String>() {
+    Ok(dino_str) => dino_str,
+    Err(_) => "".to_string(),
+  };
+
+  let gender_str = match args.single::<String>() {
+      Ok(gender_str) => gender_str,
+      Err(_) => "".to_string(),
+  };
+
+  if dino_key_str.len() == 0 {
+    msg.reply(&ctx, "Usage: gg.ij @user dino gender").await.expect("Unable to reply to message");
+    return Ok(());
+  }
+
+  if gender_str.len() == 0 {
+    msg.reply(&ctx, "Usage: gg.ij @user dino gender").await.expect("Unable to reply to message");
+    return Ok(());
+  }
+
+  let list = Dino::list();
+  let mut dino_object: Option<&Dino> = None;
+  for dino in list.iter() {
+    for key in dino.aliases.iter() {
+      if key == &dino_key_str {
+        dino_object = Some(dino);
+        break;
+      }
+    }
+  }
+
+  let user = get_db_user(&ctx, target_user.id).await;
+  let steam_id = match user.steam_id {
+    Some(id) => id,
+    None => {
+      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+      return Ok(());
+    }
+  };
+  if steam_id.len() != 17 {
+    responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+    return Ok(());
+  }
+
+  let dino = match dino_object {
+    Some(d) => d,
+    None => {
+      responder.error("Dino not found", "try one of these: alberto|acro|bary|stego|anky|austro|herrera").await;
+      return Ok(());
+    }
+  };
+
+  let gender = match gender_str.as_str() {
+      "m" => false,
+      "male" => false,
+      "f" => true,
+      "female" => true,
+      "fem" => true,
+      _ => {
+          msg.reply(&ctx, "Usage: gg.cb dinosaur m|f").await.expect("Unable to reply to message");
+          return Ok(());
+      },
+  };
+
+  let ftp_stream_lock = {
+    let data_read = ctx.data.read().await;
+    data_read.get::<FtpStreamContainer>().expect("Expected FTP stream").clone()
+  };
+
+  let file_name = format!("{}.json", steam_id);
+  let mut ftp_stream = ftp_stream_lock.lock().await;
+  let file_list = ftp_stream.nlst(None).await.unwrap();
+
+  let mut found = false;
+  for file in file_list {
+    if file == file_name {
+      found = true;
+      let mut read_cursor = ftp_stream.simple_retr(&file).await.unwrap();
+      let mut player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
+      let previous_dino = player_object.character_class.to_string();
+      player_object.update_from_dino(&dino, gender);
+      let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
+      let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
+      ftp_stream.put(&file_name, &mut reader).await.unwrap();
+
+      let balance = Unbelievabot::check_balance(guild_id, msg.author.id.0).await.expect("Unable to fetch balance");
+      if balance.cash < dino.cost {
+          responder.error("Not enough points", "You do not have enough cash points to inject that dino").await;
+          break;
+      }
+      let replace_message = format!("Your {} was replaced with an injected {}", previous_dino, dino.display_name);
+      responder.respond_injection(
+        "Dino injected",
+        &replace_message,
+        balance.cash,
+        balance.bank,
+        0,
+      ).await;
+      break;
+    }
+  }
+
+  if found == false {
+    responder.error("Player not found", "Please make sure you log in with a random dinosaur on the server first before injecting anything.").await;
+  }
+  Ok(())
 }
 
 #[command]
 #[aliases("randomdino", "rd")]
 #[only_in("guilds")]
 async fn random_dino(ctx: &Context, msg: &Message) -> CommandResult {
-    // let mut data = ctx.data.write();
+  let responder = MessageResponder {
+    ctx,
+    msg,
+  };
 
-    msg.reply(&ctx, "Random dino").await.expect("Unable to reply to message");
-    Ok(())
+  responder.error("Not avialable", "Random dino is not yet available").await;
+  Ok(())
 }
 
 #[command]
