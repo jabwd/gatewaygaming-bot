@@ -211,8 +211,7 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
   let dino = match dino_object {
     Some(d) => d,
     None => {
-      
-      // responder.error("Dinosaur not found", "Please use one of the following dinosaurs: ").await;
+      responder.error("Dinosaur not found", "That is not a dino I recognize").await;
       return Ok(());
     }
   };
@@ -288,9 +287,31 @@ async fn admin_inject(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
     ctx,
     msg,
   };
-
+  return Ok(());
   let guild_id = msg.guild_id.unwrap().0;
+  let guild = msg.guild(&ctx).await.unwrap();
+  let mut is_authorised = false;
+  for (roleId, role) in guild.roles {
+    let v = match role.name.as_str() {
+      "Some Dude" => true,
+      _ => false,
+    };
+
+    if v == true {
+      is_authorised = true;
+      break;
+    }
+  }
+  if !is_authorised {
+    return Ok(());
+  }
+          // let guild = msg.guild(&ctx).await.unwrap();
+        // println!("Guild: {}", guild.name);
+        // for (roleId, role) in guild.roles {
+        //     println!("roleId: {} {}", roleId, role.name);
+        // }
   // let guild = msg.guild(&ctx).await.unwrap();
+  // msg.author.has_role(&ctx, &guild, &roleId);
   // let author = msg.author.has_role(&ctx, GuildContainer::Guild(guild), 0);
 
   if msg.mentions.len() == 1{

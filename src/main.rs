@@ -100,6 +100,13 @@ impl EventHandler for Handler {
     }
 
     async fn message(&self, ctx: Context, msg: Message) {
+
+        // let guild = msg.guild(&ctx).await.unwrap();
+        // println!("Guild: {}", guild.name);
+        // for (roleId, role) in guild.roles {
+        //     println!("roleId: {} {}", roleId, role.name);
+        // }
+
         // let data = ctx.data.read().await;
         // {
         //     let db = data.get::<DbPool>().unwrap();
