@@ -23,9 +23,9 @@ pub struct NewUser<'a> {
 }
 
 impl User {
-    pub fn get_discord_id(&self) -> UserId {
-        self.discord_id.parse::<u64>().expect("Could not parse UserId from string").into()
-    }
+    // pub fn get_discord_id(&self) -> UserId {
+    //     self.discord_id.parse::<u64>().expect("Could not parse UserId from string").into()
+    // }
 
     pub fn get(discord_user_id: UserId, db: &DbPoolType) -> Self {
         let discord_user_id_str = discord_user_id.to_string();
@@ -58,14 +58,9 @@ impl User {
 
         diesel::update(users.find(user_id)).set(steam_id.eq(new_steam_id)).get_result::<User>(&db).expect("Unable to find user")
     }
+    // pub fn update_last_active(user_id: i32, db: &DbPoolType) -> Self {
+    //     let db = db.get().unwrap();
 
-    pub fn update_last_active(user_id: i32, db: &DbPoolType) -> Self {
-        let db = db.get().unwrap();
-
-        diesel::update(users.find(user_id)).set(last_active.eq(Utc::now())).get_result::<User>(&db).expect("Unable to find user")
-    }
-
-    pub fn gen_balance(&self) -> i32 {
-        return 0
-    }
+    //     diesel::update(users.find(user_id)).set(last_active.eq(Utc::now())).get_result::<User>(&db).expect("Unable to find user")
+    // }
 }
