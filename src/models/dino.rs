@@ -66,14 +66,14 @@ impl Dino {
             Dino::new("Ava", "Avaceratops", vec!["ava", "avaceratops"], true, 1_000, "1.0"),
             Dino::new("AvaJuv", "Avaceratops juvie", vec!["ava-juvie"], false, 0, "0.5"),
 
-            Dino::new("Camara", "Camarasaurus", vec!["cama", "camarasaurus"], true, 200_000, "1.0"),
+            Dino::new("Camara", "Camarasaurus", vec!["cama", "camarasaurus"], true, 150_000, "1.0"),
             
             Dino::new("Oro", "Orodromeus", vec!["oro", "orodromeus"], true, 1_000, "1.0"),
             
             // TODO: Find the dinosaur display name
             Dino::new("Taco", "Taco", vec!["taco", ""], true, 1_000, "1.0"),
 
-            Dino::new("Puerta", "Puertasaurus", vec!["pue", "puerta", "puertasaurus"], false, 400_000, "1.0"),
+            Dino::new("Puerta", "Puertasaurus", vec!["pue", "puerta", "puertasaurus"], true, 200_000, "1.0"),
             Dino::new("PuertaJuv", "Puertasaurus juvie", vec!["pue-juvie"], false, 400_000, "1.0"),
 
             Dino::new("Shant", "Shantungosaurus", vec!["shant", "shantungosaurus"], false, 100_000, "1.0"),
