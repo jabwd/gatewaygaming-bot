@@ -166,29 +166,25 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
 
   let dino_key_str = match args.single::<String>() {
     Ok(dino_str) => dino_str,
-    Err(_) => "".to_string(),
+    Err(_) => {
+      responder.cb_usage().await;
+      return Ok(());
+    }
   };
 
   let gender_str = match args.single::<String>() {
       Ok(gender_str) => gender_str,
-      Err(_) => "".to_string(),
+      Err(_) => {
+        responder.cb_usage().await;
+        return Ok(());
+      }
   };
-
-  if dino_key_str.len() == 0 {
-    responder.error("Using cashbuy", "gg.cb dino m|f").await;
-    return Ok(());
-  }
-
-  if gender_str.len() == 0 {
-    responder.error("Using cashbuy", "gg.cb dino m|f").await;
-    return Ok(());
-  }
 
   let list = Dino::list();
   let mut dino_object: Option<&Dino> = None;
   for dino in list.iter() {
     for key in dino.aliases.iter() {
-      if key == &dino_key_str {
+      if key.to_lowercase() == dino_key_str.to_string().to_lowercase() {
         dino_object = Some(dino);
         break;
       }
@@ -196,39 +192,35 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
   }
 
   let user = get_message_user(&ctx, &msg).await;
-  let steam_id = match user.steam_id {
+  let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {
       responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
       return Ok(());
     }
   };
-  if steam_id.len() != 17 {
-    responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
-    return Ok(());
-  }
 
   let dino = match dino_object {
     Some(d) => d,
     None => {
-      responder.error("Dinosaur not found", "That is not a dino I recognize").await;
+      responder.cb_usage().await;
       return Ok(());
     }
   };
 
   if dino.enabled == false {
-    responder.error("Dinosaur not available", "That dinosaur is currently not available for injection").await;
+    responder.error("Dinosaur not available", "That dinosaur is currently not available for injection.\nSome dinosaurs are disabled due to specific rules about injection,\ncheck the store for more information.").await;
     return Ok(());
   }
 
-  let gender = match gender_str.as_str() {
+  let gender = match gender_str.to_lowercase().as_str() {
       "m" => false,
       "male" => false,
       "f" => true,
       "female" => true,
       "fem" => true,
       _ => {
-          msg.reply(&ctx, "Usage: gg.cb dinosaur m|f").await.expect("Unable to reply to message");
+          responder.cb_usage().await;
           return Ok(());
       },
   };
@@ -248,7 +240,7 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
       found = true;
       let mut read_cursor = ftp_stream.simple_retr(&file).await.unwrap();
       let mut player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
-      let previous_dino = player_object.character_class.to_string();
+      let previous_dino = Dino::game_identifier_to_display_name(&player_object.character_class);
       player_object.update_from_dino(&dino, gender);
       let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
       let mut reader = Cursor::new(player_file_pretty_str.as_bytes());

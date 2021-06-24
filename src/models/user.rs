@@ -53,6 +53,19 @@ impl User {
         }
     }
 
+    pub fn get_steam_id(&self) -> Option<String> {
+      let steam_id_str = match &self.steam_id {
+        Some(steam_identifier) => steam_identifier,
+        None => {
+          return None;
+        }
+      };
+      if steam_id_str.len() != 17 {
+        return None;
+      }
+      return Some(steam_id_str.to_string());
+    }
+
     pub fn update_steam_id(user_id: i32, db: &DbPoolType, new_steam_id: &String) -> Self {
         let db = db.get().unwrap();
 
