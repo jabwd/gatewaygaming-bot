@@ -134,7 +134,7 @@ async fn dino_request(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
       let balance = Unbelievabot::check_balance(guild_id, msg.author.id.0).await.expect("Unable to fetch balance");
       if balance.cash < dino.cost {
           responder.error("Not enough points", "You do not have enough cash points to inject that dino").await;
-          break;
+          return Ok(());
       }
       // let user_balance = Unbelievabot::remove_cash(guild_id, msg.author.id.0, dino.cost, 0).await.expect("Unable to remove cash");
       let replace_message = format!("Your {} was replaced with an injected {}", previous_dino, dino.display_name);

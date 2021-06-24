@@ -97,7 +97,7 @@ impl Dino {
       Dino::new("Theri", "Therizinosaurus", vec!["theri", "therizinosaurus", "thri"], false, 60_000, "1.0"),
       Dino::new("TheriJuv", "Therizinosaurus juvie", vec!["theri-juvie"], false, 0, "0.4"),
 
-      Dino::new("AlloAdultS", "Allosaurus", vec!["alo", "allo", "allosaurus"], true, 50_000, "1.0"),
+      Dino::new("AlloAdultS", "Allosaurus", vec!["allo", "alo", "allosaurus"], true, 50_000, "1.0"),
       Dino::new("AlloJuvS", "Allosaurus juvie", vec!["allo-juvie"], false, 0, "0.5"),
       Dino::new("AlloHatchS", "Allosaurus hatch", vec!["allo-hatch"], false, 0, "0.5"),
 
