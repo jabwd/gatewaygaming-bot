@@ -272,46 +272,39 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
 }
 
 #[command]
-#[aliases("inject", "ij")]
+#[aliases("inject", "i")]
 #[only_in("guilds")]
 async fn admin_inject(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
   let responder = MessageResponder {
     ctx,
     msg,
   };
-  return Ok(());
+
   let guild_id = msg.guild_id.unwrap().0;
   let guild = msg.guild(&ctx).await.unwrap();
   let mut is_authorised = false;
-  for (roleId, role) in guild.roles {
-    let v = match role.name.as_str() {
-      "Some Dude" => true,
-      _ => false,
-    };
-
-    if v == true {
-      is_authorised = true;
+  for (role_id, role) in guild.roles {
+    if role.name.contains("Admins") {
+      let has_role = match msg.author.has_role(&ctx, guild_id, role_id).await {
+        Ok(user_has_role) => user_has_role,
+        Err(_) => false,
+      };
+      is_authorised = has_role;
       break;
     }
   }
   if !is_authorised {
+    responder.error(":o", "I don't think you're allowed to touch this command").await;
     return Ok(());
   }
-          // let guild = msg.guild(&ctx).await.unwrap();
-        // println!("Guild: {}", guild.name);
-        // for (roleId, role) in guild.roles {
-        //     println!("roleId: {} {}", roleId, role.name);
-        // }
-  // let guild = msg.guild(&ctx).await.unwrap();
-  // msg.author.has_role(&ctx, &guild, &roleId);
-  // let author = msg.author.has_role(&ctx, GuildContainer::Guild(guild), 0);
 
-  if msg.mentions.len() == 1{
-    responder.error("No user mentioned", "Please mention the user to forcefully inject, gg.ij @user dino gender").await;
+  if msg.mentions.len() < 1 {
+    responder.error("No user mentioned", "Please mention the user to forcefully inject, gg.i @user dino gender").await;
     return Ok(());
   }
   let target_user = &msg.mentions[0];
 
+  let _ = args.single::<String>();
   let dino_key_str = match args.single::<String>() {
     Ok(dino_str) => dino_str,
     Err(_) => "".to_string(),
@@ -323,12 +316,12 @@ async fn admin_inject(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
   };
 
   if dino_key_str.len() == 0 {
-    msg.reply(&ctx, "Usage: gg.ij @user dino gender").await.expect("Unable to reply to message");
+    msg.reply(&ctx, "Usage: gg.i @user dino gender").await.expect("Unable to reply to message");
     return Ok(());
   }
 
   if gender_str.len() == 0 {
-    msg.reply(&ctx, "Usage: gg.ij @user dino gender").await.expect("Unable to reply to message");
+    msg.reply(&ctx, "Usage: gg.i @user dino gender").await.expect("Unable to reply to message");
     return Ok(());
   }
 
@@ -359,7 +352,7 @@ async fn admin_inject(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
   let dino = match dino_object {
     Some(d) => d,
     None => {
-      responder.error("Dino not found", "try one of these: alberto|acro|bary|stego|anky|austro|herrera").await;
+      responder.error("Dino not found", "Consult staff for all the available options for admin injection").await;
       return Ok(());
     }
   };
@@ -391,24 +384,16 @@ async fn admin_inject(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
       found = true;
       let mut read_cursor = ftp_stream.simple_retr(&file).await.unwrap();
       let mut player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
-      let previous_dino = player_object.character_class.to_string();
+      let previous_dino = Dino::game_identifier_to_display_name(&player_object.character_class);
       player_object.update_from_dino(&dino, gender);
       let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
       let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
       ftp_stream.put(&file_name, &mut reader).await.unwrap();
-
-      let balance = Unbelievabot::check_balance(guild_id, msg.author.id.0).await.expect("Unable to fetch balance");
-      if balance.cash < dino.cost {
-          responder.error("Not enough points", "You do not have enough cash points to inject that dino").await;
-          break;
-      }
-      let replace_message = format!("Your {} was replaced with an injected {}", previous_dino, dino.display_name);
-      responder.respond_injection(
+      let replace_message = format!("{}'s {} was replaced with an injected {}", target_user.name, previous_dino, dino.display_name);
+      responder.respond_admin_injection(
         "Dino injected",
         &replace_message,
-        balance.cash,
-        balance.bank,
-        0,
+        &target_user,
       ).await;
       break;
     }

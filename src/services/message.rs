@@ -1,10 +1,4 @@
-use serenity::{
-  model::{
-      channel::Message,
-  },
-  prelude::*,
-  utils::Colour
-};
+use serenity::{model::{channel::Message, prelude::User}, prelude::*, utils::Colour};
 
 use crate::models::dino::Dino;
 
@@ -116,6 +110,32 @@ impl MessageResponder<'_> {
           e.colour(Colour::from_rgb(50, 220, 50));
           e.footer(|f| {
               f.text(format!("{} Points were withdrawn from your cash", cost));
+              f
+          });
+          e
+      });
+      m
+    }).await;
+  }
+
+  pub async fn respond_admin_injection<D>(
+    &self,
+    title: D,
+    message: D,
+    user: &User
+  ) where D: ToString {
+    let _ = self.msg.channel_id.send_message(&self.ctx.http, |m| {
+      m.embed(|e| {
+          e.title(title);
+          e.description(message);
+          e.author(|a| {
+              a.name(&user.name);
+              a.icon_url(user.avatar_url().unwrap());
+              a
+          });
+          e.colour(Colour::from_rgb(50, 220, 50));
+          e.footer(|f| {
+              f.text("Admin injections do not cost points");
               f
           });
           e
