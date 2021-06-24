@@ -32,6 +32,7 @@ use async_ftp::FtpStream;
 use commands::{
     balance::*,
     dino_injections::*,
+    check_dino::*,
 };
 
 mod commands;
@@ -74,6 +75,7 @@ struct Handler;
     register,
     dino_request,
     random_dino,
+    check_dino,
 )]
 struct General;
 
@@ -101,12 +103,12 @@ impl EventHandler for Handler {
     }
 
     async fn message(&self, ctx: Context, msg: Message) {
-        let guild = msg.guild(&ctx).await.unwrap();
+        // let guild = msg.guild(&ctx).await.unwrap();
         
-        for (roleId, role) in guild.roles {
-            let has_role = msg.author.has_role(&ctx, guild.id, roleId).await;
-            println!("User has role: {}-{}: {:?}", role.id, role.name, has_role);
-        }
+        // for (roleId, role) in guild.roles {
+        //     let has_role = msg.author.has_role(&ctx, guild.id, roleId).await;
+        //     println!("User has role: {}-{}: {:?}", role.id, role.name, has_role);
+        // }
         // let guild = msg.guild(&ctx).await.unwrap();
         // println!("Guild: {}", guild.name);
         // for (roleId, role) in guild.roles {

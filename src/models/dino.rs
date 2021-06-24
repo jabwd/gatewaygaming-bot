@@ -176,3 +176,11 @@ impl Dino {
         list
     }
 }
+
+/*
+Rex:
+max bleed 30
+Sit: divided by 3
+96% water: 87
+96% food:  2081
+*/
