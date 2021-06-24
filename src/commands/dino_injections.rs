@@ -226,6 +226,13 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
       },
   };
 
+  let guild_id = msg.guild_id.unwrap().0;
+  let balance = Unbelievabot::check_balance(guild_id, msg.author.id.0).await.expect("Unable to fetch balance");
+  if balance.cash < dino.cost {
+      responder.error("Not enough points", "You do not have enough cash points to inject that dino").await;
+      return Ok(());
+  }
+
   let ftp_stream_lock = {
     let data_read = ctx.data.read().await;
     data_read.get::<FtpStreamContainer>().expect("Expected FTP stream").clone()
@@ -247,12 +254,6 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
       let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
       ftp_stream.put(&file_name, &mut reader).await.unwrap();
 
-      let guild_id = msg.guild_id.unwrap().0;
-      let balance = Unbelievabot::check_balance(guild_id, msg.author.id.0).await.expect("Unable to fetch balance");
-      if balance.cash < dino.cost {
-          responder.error("Not enough points", "You do not have enough cash points to inject that dino").await;
-          break;
-      }
       let user_balance = Unbelievabot::remove_cash(guild_id, msg.author.id.0, dino.cost, 0).await.expect("Unable to remove cash");
       let replace_message = format!("Your {} was replaced with an injected {}", previous_dino, dino.display_name);
       responder.respond_injection(
