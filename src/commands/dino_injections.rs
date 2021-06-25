@@ -240,36 +240,31 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
 
   let file_name = format!("{}.json", steam_id);
   let mut ftp_stream = ftp_stream_lock.lock().await;
-  let file_list = ftp_stream.nlst(None).await.unwrap();
 
-  let mut found = false;
-  for file in file_list {
-    if file == file_name {
-      found = true;
-      let mut read_cursor = ftp_stream.simple_retr(&file).await.unwrap();
-      let mut player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
-      let previous_dino = Dino::game_identifier_to_display_name(&player_object.character_class);
-      player_object.update_from_dino(&dino, gender);
-      let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
-      let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
-      ftp_stream.put(&file_name, &mut reader).await.unwrap();
-
-      let user_balance = Unbelievabot::remove_cash(guild_id, msg.author.id.0, dino.cost, 0).await.expect("Unable to remove cash");
-      let replace_message = format!("Your {} was replaced with an injected {}", previous_dino, dino.display_name);
-      responder.respond_injection(
-        "Dino injected",
-        &replace_message,
-        user_balance.cash,
-        user_balance.bank,
-        dino.cost,
-      ).await;
-      break;
+  let mut read_cursor = match ftp_stream.simple_retr(&file_name).await {
+    Ok(cursor) => cursor,
+    Err(_) => {
+      responder.error("Player not found", "Please make sure you safe logged with a previous dino before attempting an injection").await;
+      return Ok(());
     }
-  }
+  };
+  let mut player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
+  let previous_dino = Dino::game_identifier_to_display_name(&player_object.character_class);
+  player_object.update_from_dino(&dino, gender);
+  let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
+  let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
+  let user_balance = Unbelievabot::remove_cash(guild_id, msg.author.id.0, dino.cost, 0).await.expect("Unable to remove cash");
+  ftp_stream.put(&file_name, &mut reader).await.unwrap();
 
-  if found == false {
-    responder.error("Player not found", "Please make sure you log in with a random dinosaur on the server first before injecting anything.").await;
-  }
+  let replace_message = format!("Your {} was replaced with an injected {}", previous_dino, dino.display_name);
+  responder.respond_injection(
+    "Dino injected",
+    &replace_message,
+    user_balance.cash,
+    user_balance.bank,
+    dino.cost,
+  ).await;
+
   Ok(())
 }
 
