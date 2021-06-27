@@ -1,3 +1,4 @@
+use crate::models::teleport::Teleport;
 use crate::models::dino::Dino;
 use serde::{Deserialize, Serialize};
 
@@ -7,116 +8,121 @@ const MAX_GENERIC: &str = "9999";
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Player {
-    #[serde(rename = "CharacterClass")]
-    pub character_class: String,
-    #[serde(rename = "DNA")]
-    pub dna: String,
-    #[serde(rename = "Location_Thenyaw_Island")]
-    pub location_thenyaw_island: Option<String>,
-    #[serde(rename = "Rotation_Thenyaw_Island")]
-    pub rotation_thenyaw_island: Option<String>,
-    #[serde(rename = "Location_Isle_V3")]
-    pub location_isle_v3: Option<String>,
-    #[serde(rename="Rotation_Isle_V3")]
-    pub rotation_isle_v3: Option<String>,
-    #[serde(rename = "Growth")]
-    pub growth: String,
-    #[serde(rename = "Hunger")]
-    pub hunger: String,
-    #[serde(rename = "Thirst")]
-    pub thirst: String,
-    #[serde(rename = "Stamina")]
-    pub stamina: String,
-    #[serde(rename = "Health")]
-    pub health: String,
-    #[serde(rename = "BleedingRate")]
-    pub bleeding_rate: String,
-    #[serde(rename = "Oxygen")]
-    pub oxygen: String,
-    #[serde(rename = "bGender")]
-    pub gender: bool, // male = false, female = true
-    #[serde(rename = "bIsResting")]
-    pub is_resting: bool,
-    #[serde(rename = "bBrokenLegs")]
-    pub broken_legs: bool,
-    #[serde(rename = "ProgressionPoints")]
-    pub progression_points: String,
-    #[serde(rename = "ProgressionTier")]
-    pub progression_tier: String,
-    #[serde(rename = "UnlockedCharacters")]
-    pub unlocked_characters: String,
-    #[serde(rename = "CameraRotation_Thenyaw_Island")]
-    pub camera_rotation_thenyaw_island: Option<String>,
-    #[serde(rename = "CameraDistance_Thenyaw_Island")]
-    pub camera_distance_thenyaw_island: Option<String>,
-    #[serde(rename="CameraRotation_Isle_V3")]
-    pub camera_rotation_isle_v3: Option<String>,
-    #[serde(rename="CameraDistance_Isle_v3")]
-    pub camera_distance_isle_v3: Option<String>,
-    #[serde(rename = "SkinPaletteSection1")]
-    pub skin_palette_section1: i32,
-    #[serde(rename = "SkinPaletteSection2")]
-    pub skin_palette_section2: i32,
-    #[serde(rename = "SkinPaletteSection3")]
-    pub skin_palette_section3: i32,
-    #[serde(rename = "SkinPaletteSection4")]
-    pub skin_palette_section4: i32,
-    #[serde(rename = "SkinPaletteSection5")]
-    pub skin_palette_section5: i32,
-    #[serde(rename = "SkinPaletteSection6")]
-    pub skin_palette_section6: i32,
-    #[serde(rename = "SkinPaletteVariation")]
-    pub skin_palette_variation: String,
+  #[serde(rename = "CharacterClass")]
+  pub character_class: String,
+  #[serde(rename = "DNA")]
+  pub dna: String,
+  #[serde(rename = "Location_Thenyaw_Island")]
+  pub location_thenyaw_island: Option<String>,
+  #[serde(rename = "Rotation_Thenyaw_Island")]
+  pub rotation_thenyaw_island: Option<String>,
+  #[serde(rename = "Location_Isle_V3")]
+  pub location_isle_v3: Option<String>,
+  #[serde(rename="Rotation_Isle_V3")]
+  pub rotation_isle_v3: Option<String>,
+  #[serde(rename = "Growth")]
+  pub growth: String,
+  #[serde(rename = "Hunger")]
+  pub hunger: String,
+  #[serde(rename = "Thirst")]
+  pub thirst: String,
+  #[serde(rename = "Stamina")]
+  pub stamina: String,
+  #[serde(rename = "Health")]
+  pub health: String,
+  #[serde(rename = "BleedingRate")]
+  pub bleeding_rate: String,
+  #[serde(rename = "Oxygen")]
+  pub oxygen: String,
+  #[serde(rename = "bGender")]
+  pub gender: bool, // male = false, female = true
+  #[serde(rename = "bIsResting")]
+  pub is_resting: bool,
+  #[serde(rename = "bBrokenLegs")]
+  pub broken_legs: bool,
+  #[serde(rename = "ProgressionPoints")]
+  pub progression_points: String,
+  #[serde(rename = "ProgressionTier")]
+  pub progression_tier: String,
+  #[serde(rename = "UnlockedCharacters")]
+  pub unlocked_characters: String,
+  #[serde(rename = "CameraRotation_Thenyaw_Island")]
+  pub camera_rotation_thenyaw_island: Option<String>,
+  #[serde(rename = "CameraDistance_Thenyaw_Island")]
+  pub camera_distance_thenyaw_island: Option<String>,
+  #[serde(rename="CameraRotation_Isle_V3")]
+  pub camera_rotation_isle_v3: Option<String>,
+  #[serde(rename="CameraDistance_Isle_v3")]
+  pub camera_distance_isle_v3: Option<String>,
+  #[serde(rename = "SkinPaletteSection1")]
+  pub skin_palette_section1: i32,
+  #[serde(rename = "SkinPaletteSection2")]
+  pub skin_palette_section2: i32,
+  #[serde(rename = "SkinPaletteSection3")]
+  pub skin_palette_section3: i32,
+  #[serde(rename = "SkinPaletteSection4")]
+  pub skin_palette_section4: i32,
+  #[serde(rename = "SkinPaletteSection5")]
+  pub skin_palette_section5: i32,
+  #[serde(rename = "SkinPaletteSection6")]
+  pub skin_palette_section6: i32,
+  #[serde(rename = "SkinPaletteVariation")]
+  pub skin_palette_variation: String,
 }
 
 impl Player {
-    pub fn new(character_class: String, gender: bool) -> Player {
-        let player_save = Player
-        {
-            character_class,
-            dna: "".to_string(),
-            location_thenyaw_island: None,
-            rotation_thenyaw_island: None,
-            location_isle_v3: None,
-            rotation_isle_v3: None,
-            growth: "1.0".to_string(),
-            hunger: "14999".to_string(),
-            thirst: "9999".to_string(),
-            stamina: "9999".to_string(),
-            health: "99999".to_string(),
-            bleeding_rate: "0.0".to_string(),
-            oxygen: "40".to_string(),
-            gender,
-            is_resting: false,
-            broken_legs: false,
-            progression_points: "0.0".to_string(),
-            progression_tier: "1.0".to_string(),
-            unlocked_characters: "".to_string(),
-            camera_rotation_thenyaw_island: None,
-            camera_distance_thenyaw_island: None,
-            camera_rotation_isle_v3: None,
-            camera_distance_isle_v3: None,
-            skin_palette_section1: 63,
-            skin_palette_section2: 26,
-            skin_palette_section3: 29,
-            skin_palette_section4: 30,
-            skin_palette_section5: 24,
-            skin_palette_section6: 0,
-            skin_palette_variation: "6.0".to_string(),
-        };
-        
-        player_save
-    }
+  pub fn new(character_class: String, gender: bool) -> Player {
+    let player_save = Player
+    {
+      character_class,
+      dna: "".to_string(),
+      location_thenyaw_island: None,
+      rotation_thenyaw_island: None,
+      location_isle_v3: None,
+      rotation_isle_v3: None,
+      growth: "1.0".to_string(),
+      hunger: "14999".to_string(),
+      thirst: "9999".to_string(),
+      stamina: "9999".to_string(),
+      health: "99999".to_string(),
+      bleeding_rate: "0.0".to_string(),
+      oxygen: "40".to_string(),
+      gender,
+      is_resting: false,
+      broken_legs: false,
+      progression_points: "0.0".to_string(),
+      progression_tier: "1.0".to_string(),
+      unlocked_characters: "".to_string(),
+      camera_rotation_thenyaw_island: None,
+      camera_distance_thenyaw_island: None,
+      camera_rotation_isle_v3: None,
+      camera_distance_isle_v3: None,
+      skin_palette_section1: 63,
+      skin_palette_section2: 26,
+      skin_palette_section3: 29,
+      skin_palette_section4: 30,
+      skin_palette_section5: 24,
+      skin_palette_section6: 0,
+      skin_palette_variation: "6.0".to_string(),
+    };
+    
+    player_save
+  }
 
-    pub fn update_from_dino(&mut self, dino: &Dino, gender: bool) {
-        self.gender = gender;
-        self.character_class = dino.character_class.to_string();
-        self.growth = dino.growth.to_string();
-        self.health = MAX_HEALTH.to_string();
-        self.hunger = MAX_HUNGER.to_string();
-        self.thirst = MAX_GENERIC.to_string();
-        self.stamina = MAX_GENERIC.to_string();
-    }
+  pub fn update_from_dino(&mut self, dino: &Dino, gender: bool) {
+    self.gender = gender;
+    self.character_class = dino.character_class.to_string();
+    self.growth = dino.growth.to_string();
+    self.health = MAX_HEALTH.to_string();
+    self.hunger = MAX_HUNGER.to_string();
+    self.thirst = MAX_GENERIC.to_string();
+    self.stamina = MAX_GENERIC.to_string();
+  }
+
+  pub fn update_teleport(&mut self, teleport: &Teleport) {
+    self.location_isle_v3 = Some(format!("X={} Y={} Z={}", teleport.location.x, teleport.location.y, teleport.location.z));
+    self.camera_rotation_isle_v3 = Some(format!("P={} Y={} R={}", teleport.rotation.pitch, teleport.rotation.yaw, teleport.rotation.roll));
+  }
 }
 
 /*

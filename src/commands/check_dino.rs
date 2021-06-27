@@ -23,7 +23,7 @@ use crate::{
 #[command]
 #[aliases("cd", "checkdino", "healthreport", "hr")]
 #[only_in("guilds")]
-pub async fn check_dino(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+pub async fn check_dino(ctx: &Context, msg: &Message) -> CommandResult {
   let responder = MessageResponder {
     ctx,
     msg,
@@ -45,21 +45,10 @@ pub async fn check_dino(ctx: &Context, msg: &Message, mut args: Args) -> Command
 
   let file_name = format!("{}.json", steam_id);
   let mut ftp_stream = ftp_stream_lock.lock().await;
-  let file_list = ftp_stream.nlst(None).await.unwrap();
+  let mut read_cursor = ftp_stream.simple_retr(&file_name).await.unwrap();
+  let player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
+  println!("Prev dino: {:?}", player_object);
+  println!("Isle location: {:?}\nIsle Rotation: {:?}\nCamera rotation: {:?}\nCamera distance: {:?}", player_object.location_isle_v3, player_object.rotation_isle_v3, player_object.camera_rotation_isle_v3, player_object.camera_distance_isle_v3);
 
-  let mut found = false;
-  for file in file_list {
-    if file == file_name {
-      found = true;
-      let mut read_cursor = ftp_stream.simple_retr(&file).await.unwrap();
-      let player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
-      println!("Prev dino: {:?}", player_object);
-      break;
-    }
-  }
-
-  if found == false {
-    responder.error("Player not found", "Please make sure you log in with a random dinosaur on the server first before injecting anything.").await;
-  }
   Ok(())
 }

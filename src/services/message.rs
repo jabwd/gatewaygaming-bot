@@ -144,6 +144,39 @@ impl MessageResponder<'_> {
     }).await;
   }
 
+  pub async fn respond_tp<D>(
+    &self,
+    title: D,
+    message: D,
+    cash: i64,
+    bank: i64,
+    cost: i64,
+    user: &User
+  ) where D: ToString {
+    let _ = self.msg.channel_id.send_message(&self.ctx.http, |m| {
+      m.embed(|e| {
+          e.title(title);
+          e.description(message);
+          e.author(|a| {
+              a.name(&user.name);
+              a.icon_url(user.avatar_url().unwrap());
+              a
+          });
+          e.fields(vec![
+            ("Cash", format!("{}", cash), true),
+            ("Bank", format!("{}", bank), true),
+          ]);
+          e.colour(Colour::from_rgb(50, 220, 50));
+          e.footer(|f| {
+              f.text(format!("{} points withdrawn for the teleport", cost));
+              f
+          });
+          e
+      });
+      m
+    }).await;
+  }
+
   pub async fn injection_usage<D>(
     &self,
     title: D,

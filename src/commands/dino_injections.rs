@@ -414,13 +414,3 @@ async fn random_dino(ctx: &Context, msg: &Message) -> CommandResult {
   responder.error("Not avialable", "Random dino is not yet available").await;
   Ok(())
 }
-
-#[command]
-#[aliases("slay", "kill")]
-#[only_in("guilds")]
-async fn slay_dino(ctx: &Context, msg: &Message) -> CommandResult {
-    // let mut data = ctx.data.write();
-
-    msg.reply(&ctx, "Random dino").await.expect("Unable to reply to message");
-    Ok(())
-}

@@ -4,8 +4,8 @@ extern crate dotenv;
 extern crate chrono;
 
 // use crate::diesel::Connection;
-use serenity::futures::StreamExt;
-use serenity::model::prelude::MembersIter;
+// use serenity::futures::StreamExt;
+// use serenity::model::prelude::MembersIter;
 use diesel::{
     PgConnection,
     r2d2::{ ConnectionManager, Pool },
@@ -25,14 +25,15 @@ use serenity::{
     },
     http::Http,
     model::{event::ResumedEvent, gateway::Ready, channel::Message},
-    model::guild::*,
+    // model::guild::*,
     prelude::*
 };
 use async_ftp::FtpStream;
 use commands::{
-    balance::*,
     dino_injections::*,
     check_dino::*,
+    slay::*,
+    teleport::*,
 };
 
 mod commands;
@@ -65,23 +66,21 @@ struct Handler;
 
 #[group]
 #[commands(
-    balance,
-    give,
-    take,
     cash_buy,
     admin_inject,
     random_dino,
-    slay_dino,
+    slay,
     register,
     dino_request,
     random_dino,
     check_dino,
+    teleport,
 )]
 struct General;
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn ready(&self, ctx: Context, ready: Ready) {
+    async fn ready(&self, _ctx: Context, _ready: Ready) {
         println!("{{GG}} Bot is ready for rulebreaks and general scumbaggery");
         // println!("=> Connected to discord, loading guild data…");
         // if let Ok(guilds) = ready.user.guilds(&ctx).await {
@@ -102,7 +101,7 @@ impl EventHandler for Handler {
         // }
     }
 
-    async fn message(&self, ctx: Context, msg: Message) {
+    async fn message(&self, _ctx: Context, _msg: Message) {
         // let guild = msg.guild(&ctx).await.unwrap();
         
         // for (roleId, role) in guild.roles {

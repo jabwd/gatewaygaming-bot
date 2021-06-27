@@ -5,3 +5,4 @@ pub mod currency;
 pub mod dino;
 pub mod garage;
 pub mod skin;
+pub mod teleport;
