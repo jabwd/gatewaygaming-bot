@@ -5,7 +5,7 @@ use serenity::{
     model::{
         channel::Message,
     },
-    framework::standard::{ Args, CommandResult, macros::command },
+    framework::standard::{ CommandResult, macros::command },
 };
 use crate::{
     FtpStreamContainer,
@@ -16,17 +16,10 @@ use crate::{
 #[command]
 #[aliases("slay", "s", "kill")]
 #[only_in("guilds")]
-pub async fn slay(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+pub async fn slay(ctx: &Context, msg: &Message) -> CommandResult {
   let responder = MessageResponder {
     ctx,
     msg,
-  };
-
-  let guild_id = match msg.guild_id {
-    Some(guild_id_v) => guild_id_v.0,
-    None => {
-      return Ok(());
-    }
   };
 
   let user = get_message_user(&ctx, &msg).await;
@@ -54,12 +47,12 @@ pub async fn slay(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
       return Ok(());
     }
   };
-  let mut player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
+  let player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
   let previous_dino = Dino::game_identifier_to_display_name(&player_object.character_class);
 
   ftp_stream.rm(&file_name).await.expect("Unable to delete file");
 
-  responder.success("Slay succeeded", format!("Your {} was slain, hf with spawning at murky again :D", previous_dino)).await;
+  responder.success("Slay succeeded", format!("Your {} was slain, hf with spawning at murky again :D", previous_dino).as_str()).await;
 
   Ok(())
 }
