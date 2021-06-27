@@ -49,6 +49,12 @@ pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
     }
   };
 
+  let cost = 1000;
+  let balance = Unbelievabot::check_balance(guild_id, msg.author.id.0).await.expect("Unable to fetch balance");
+  if balance.cash < cost {
+      responder.error("Not enough points", "You do not have enough cash points to teleport a dino right now").await;
+      return Ok(());
+  }
 
   let ftp_stream_lock = {
     let data_read = ctx.data.read().await;
@@ -69,12 +75,6 @@ pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
   let mut player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
   let previous_dino = Dino::game_identifier_to_display_name(&player_object.character_class);
 
-  let balance = Unbelievabot::check_balance(guild_id, msg.author.id.0).await.expect("Unable to fetch balance");
-  if balance.cash < 500 {
-      responder.error("Not enough points", "You do not have enough cash points to teleport a dino rigth now").await;
-      return Ok(());
-  }
-
   let mut locations = vec![];
   for location in &list {
     if location.label.contains(&location_label) {
@@ -84,7 +84,6 @@ pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
 
   let rand_index = rand::random::<usize>() % locations.len();
 
-  let cost = 1000;
   let selected_location = locations[rand_index];
   player_object.update_teleport(&selected_location);
   let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
