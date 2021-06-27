@@ -1,6 +1,4 @@
-use diesel::prelude::*;
-use crate::{ schema, schema::currencies, DbPoolType };
-use schema::currencies::dsl::*;
+use crate::{ schema::currencies, DbPoolType };
 
 #[derive(Queryable)]
 pub struct Currency {

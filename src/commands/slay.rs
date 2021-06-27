@@ -7,7 +7,6 @@ use serenity::{
     },
     framework::standard::{ Args, CommandResult, macros::command },
 };
-use std::io::Cursor;
 use crate::{
     FtpStreamContainer,
     entities::player::Player,

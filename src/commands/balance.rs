@@ -2,12 +2,9 @@ use serenity::{
     prelude::*,
     model::{
         channel::Message,
-        prelude::{ UserId, Permissions },
     },
-    framework::standard::{ Args, CommandResult, macros::command, ArgError::Parse },
+    framework::standard::{ CommandResult, macros::command },
 };
-
-use crate::{ DbPool, models };
 
 #[command]
 #[aliases("bal", "b")]

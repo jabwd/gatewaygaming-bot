@@ -1,17 +1,14 @@
 use crate::services::message::MessageResponder;
 use crate::services::unbelievabot::*;
-use serenity::utils::Colour;
 use crate::models::dino::Dino;
 use crate::DbPool;
 use serenity::{
     prelude::*,
     model::{
         channel::Message,
-        guild::GuildContainer,
     },
     framework::standard::{ Args, CommandResult, macros::command },
 };
-use serenity::model::channel::ReactionType;
 use std::io::Cursor;
 use crate::{
     models::user::*,

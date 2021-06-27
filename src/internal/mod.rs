@@ -8,7 +8,6 @@ use serenity::{
 };
 
 mod dino_options;
-mod ftp_stream_manager;
 
 pub async fn get_message_user(ctx: &Context, msg: &Message) -> User {
   let data = ctx.data.read().await;
