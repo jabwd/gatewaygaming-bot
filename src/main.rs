@@ -34,6 +34,8 @@ use commands::{
     check_dino::*,
     slay::*,
     teleport::*,
+    sex_operation::*,
+    dino_garage::*,
 };
 
 mod commands;
@@ -75,6 +77,9 @@ struct Handler;
     random_dino,
     check_dino,
     teleport,
+    sex_change,
+    garage_list,
+    garage_save_dino,
 )]
 struct General;
 

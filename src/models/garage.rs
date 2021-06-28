@@ -1,7 +1,7 @@
 use diesel::prelude::*;
 
 use schema::garage::dsl::*;
-use crate::{ schema, schema::garage, DbPoolType };
+use crate::{DbPoolType, entities::player::Player, schema, schema::garage};
 
 #[derive(Queryable)]
 pub struct Garage {
@@ -42,6 +42,7 @@ pub struct Garage {
 #[derive(Insertable)]
 #[table_name="garage"]
 pub struct GarageSlotInsertable<'a> {
+  pub user_id: i32,
   pub slot_name: &'a String,
   pub character_class: &'a String,
   pub growth: &'a String,
@@ -72,6 +73,47 @@ pub struct GarageSlotInsertable<'a> {
   pub skin_palette_section4: i32,
   pub skin_palette_section5: i32,
   pub skin_palette_section6: i32,
+}
+
+impl GarageSlotInsertable<'_> {
+  pub fn from_player_object<'a>(player_object: &'a Player, author_id: i32, new_slot_name: &'a String) -> GarageSlotInsertable<'a> {
+    let slot = GarageSlotInsertable
+    {
+      user_id: author_id,
+      slot_name: new_slot_name,
+      character_class: &player_object.character_class,
+      growth: &player_object.growth,
+      hunger: &player_object.hunger,
+      thirst: &player_object.thirst,
+      stamina: &player_object.stamina,
+      health: &player_object.health,
+      bleeding_rate: &player_object.bleeding_rate,
+      oxygen: &player_object.oxygen,
+      sex: player_object.gender,
+      is_resting: player_object.is_resting,
+      broken_legs: player_object.broken_legs,
+      progression_points: &player_object.progression_points,
+      progression_tier: &player_object.progression_tier,
+      unlocked_characters: &player_object.unlocked_characters,
+      location_thenyaw_island: None,
+      rotation_thenyaw_island: None,
+      location_isle_v3: None,
+      rotation_isle_v3: None,
+      camera_rotation_thenyaw_island: None,
+      camera_distance_thenyaw_island: None,
+      camera_rotation_isle_v3: None,
+      camera_distance_isle_v3: None,
+      skin_palette_variation: &player_object.skin_palette_variation,
+      skin_palette_section1: player_object.skin_palette_section1,
+      skin_palette_section2: player_object.skin_palette_section2,
+      skin_palette_section3: player_object.skin_palette_section3,
+      skin_palette_section4: player_object.skin_palette_section4,
+      skin_palette_section5: player_object.skin_palette_section5,
+      skin_palette_section6: player_object.skin_palette_section6,
+    };
+
+    slot
+  }
 }
 
 impl Garage {
