@@ -1,6 +1,9 @@
 use serenity::{model::{channel::Message, prelude::User}, prelude::*, utils::Colour};
 
-use crate::models::dino::Dino;
+use crate::models::{
+  dino::Dino,
+  teleport::Teleport
+};
 
 pub struct MessageResponder<'a> {
   pub ctx: &'a Context,
@@ -114,6 +117,7 @@ impl MessageResponder<'_> {
           });
           e
       });
+      m.reference_message(self.msg);
       m
     }).await;
   }
@@ -140,6 +144,7 @@ impl MessageResponder<'_> {
           });
           e
       });
+      m.reference_message(self.msg);
       m
     }).await;
   }
@@ -173,6 +178,40 @@ impl MessageResponder<'_> {
           });
           e
       });
+      m.reference_message(self.msg);
+      m
+    }).await;
+  }
+
+  pub async fn tp_usage(
+    &self,
+  ) {
+    let list = Teleport::tp_locations();
+    let mut known: Vec<String> = vec![];
+    let mut locations = String::new();
+    for location in list {
+      if known.iter().any(|i| i.contains(&location.label) == true) {
+        continue;
+      }
+      let label = location.label.to_string();
+      locations.push_str(&format!("{}/", &label));
+      known.insert(0, label);
+    }
+    let mut final_location_list = locations.chars();
+    final_location_list.next_back();
+    let location_list_str = final_location_list.as_str();
+    let _ = self.msg.channel_id.send_message(&self.ctx.http, |m| {
+      m.embed(|e| {
+          e.title("TP command usage");
+          e.description(&format!("gg.tp {}", location_list_str));
+          e.colour(Colour::from_rgb(50, 50, 220));
+          e.footer(|f| {
+            f.text("A tp costs 1000 points");
+            f
+          });
+          e
+      });
+      m.reference_message(self.msg);
       m
     }).await;
   }

@@ -35,10 +35,23 @@ pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
   let location_label = match args.single::<String>() {
     Ok(loc) => loc,
     Err(_) => {
-      // print usage
+      responder.tp_usage().await;
       return Ok(());
     }
   };
+
+  let list = Teleport::tp_locations();
+  let mut locations = vec![];
+  for location in &list {
+    if location.label.contains(&location_label) {
+      locations.insert(0, location);
+    }
+  }
+
+  if locations.len() == 0 {
+    responder.tp_usage().await;
+    return Ok(());
+  }
 
   let user = get_message_user(&ctx, &msg).await;
   let steam_id = match user.get_steam_id() {
@@ -63,8 +76,6 @@ pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
   let file_name = format!("{}.json", steam_id);
   let mut ftp_stream = ftp_stream_lock.lock().await;
 
-  let list = Teleport::tp_locations();
-
   let mut read_cursor = match ftp_stream.simple_retr(&file_name).await {
     Ok(cursor) => cursor,
     Err(_) => {
@@ -74,13 +85,6 @@ pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
   };
   let mut player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
   let previous_dino = Dino::game_identifier_to_display_name(&player_object.character_class);
-
-  let mut locations = vec![];
-  for location in &list {
-    if location.label.contains(&location_label) {
-      locations.insert(0, location);
-    }
-  }
 
   let rand_index = rand::random::<usize>() % locations.len();
 
