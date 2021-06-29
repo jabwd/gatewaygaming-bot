@@ -10,7 +10,7 @@ use serenity::{
 };
 use std::io::Cursor;
 use crate::{
-    FtpStreamContainer,
+    FtpPool,
     entities::player::Player,
     internal::*
 };
@@ -47,11 +47,9 @@ async fn sex_change(ctx: &Context, msg: &Message) -> CommandResult {
   }
   let file_name = format!("{}.json", steam_id);
 
-  let ftp_stream_lock = {
-    let data_read = ctx.data.read().await;
-    data_read.get::<FtpStreamContainer>().expect("Expected FTP stream").clone()
-  };
-  let mut ftp_stream = ftp_stream_lock.lock().await;
+  let data_read = ctx.data.read().await;
+  let pool = data_read.get::<FtpPool>().expect("Expected ftp stream").clone();
+  let mut ftp_stream = pool.get().await.expect("Expected FTP connection");
   let mut read_cursor = match ftp_stream.simple_retr(&file_name).await {
     Ok(cursor) => cursor,
     Err(_) => {

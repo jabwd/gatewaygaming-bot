@@ -7,7 +7,7 @@ use serenity::{
     framework::standard::{ CommandResult, macros::command },
 };
 use crate::{
-    FtpStreamContainer,
+    FtpPool,
     entities::player::Player,
     internal::*
 };
@@ -30,13 +30,10 @@ pub async fn check_dino(ctx: &Context, msg: &Message) -> CommandResult {
     }
   };
 
-  let ftp_stream_lock = {
-    let data_read = ctx.data.read().await;
-    data_read.get::<FtpStreamContainer>().expect("Expected FTP stream").clone()
-  };
-
   let file_name = format!("{}.json", steam_id);
-  let mut ftp_stream = ftp_stream_lock.lock().await;
+  let data_read = ctx.data.read().await;
+  let pool = data_read.get::<FtpPool>().expect("Expected ftp stream").clone();
+  let mut ftp_stream = pool.get().await.expect("Expected FTP connection");
   let mut read_cursor = ftp_stream.simple_retr(&file_name).await.unwrap();
   let player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
   println!("Prev dino: {:?}", player_object);

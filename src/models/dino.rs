@@ -176,8 +176,10 @@ impl Dino {
 
   pub fn request_dino_list() -> Vec<Dino>  {
     let list = vec![
-      Dino::new("AcroJuv", "Acro juvie", vec!["acro", "acrocanthosaurus"], true, 0, "0.1"),
-      Dino::new("Albert", "Albertosaurus", vec!["albert", "alberto", "albertosaurus"], true, 0, "0.4"),
+      // 0.1 as hatch
+      Dino::new("AcroJuv", "Acro juvie", vec!["acro", "acrocanthosaurus"], true, 0, "0.45"),
+      // 0.4 alberto
+      Dino::new("Albert", "Albertosaurus", vec!["albert", "alberto", "albertosaurus"], true, 0, "0.45"),
       Dino::new("BaryJuv", "Baryonyx juvie", vec!["bary", "baryonyx"], true, 0, "0.2"),
       Dino::new("AnkyJuv", "Ankylosaurus juvie", vec!["anky", "ankylosaurus"], true, 0, "0.2"),
       Dino::new("StegoJuv", "Stegosaurus juvie", vec!["stegosaurus", "stego"], true, 0, "0.2"),

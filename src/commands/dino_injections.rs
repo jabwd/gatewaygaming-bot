@@ -1,3 +1,4 @@
+use crate::FtpPool;
 use crate::services::message::MessageResponder;
 use crate::services::unbelievabot::*;
 use crate::models::dino::Dino;
@@ -12,7 +13,6 @@ use serenity::{
 use std::io::Cursor;
 use crate::{
     models::user::*,
-    FtpStreamContainer,
     entities::player::Player,
     internal::*
 };
@@ -113,43 +113,29 @@ async fn dino_request(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
       return Ok(());
   }
 
-  let ftp_stream_lock = {
-    let data_read = ctx.data.read().await;
-    data_read.get::<FtpStreamContainer>().expect("Expected FTP stream").clone()
-  };
+  let data_read = ctx.data.read().await;
+  let pool = data_read.get::<FtpPool>().expect("Expected ftp stream").clone();
+  let mut ftp_stream = pool.get().await.expect("Expected FTP connection");
 
   let file_name = format!("{}.json", steam_id);
-  let mut ftp_stream = ftp_stream_lock.lock().await;
-  let file_list = ftp_stream.nlst(None).await.unwrap();
+  
+  let mut read_cursor = ftp_stream.simple_retr(&file_name).await.unwrap();
+  let mut player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
+  let previous_dino = player_object.character_class.to_string();
+  player_object.update_from_dino(&dino, gender);
+  let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
+  let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
+  ftp_stream.put(&file_name, &mut reader).await.unwrap();
+  // let user_balance = Unbelievabot::remove_cash(guild_id, msg.author.id.0, dino.cost, 0).await.expect("Unable to remove cash");
+  let replace_message = format!("Your {} was replaced with an injected {}", previous_dino, dino.display_name);
+  responder.respond_injection(
+    "Dino injected",
+    &replace_message,
+    balance.cash,
+    balance.bank,
+    dino.cost,
+  ).await;
 
-  let mut found = false;
-  for file in file_list {
-    if file == file_name {
-      found = true;
-
-      let mut read_cursor = ftp_stream.simple_retr(&file).await.unwrap();
-      let mut player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
-      let previous_dino = player_object.character_class.to_string();
-      player_object.update_from_dino(&dino, gender);
-      let player_file_pretty_str = serde_json::to_string_pretty(&player_object).unwrap();
-      let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
-      ftp_stream.put(&file_name, &mut reader).await.unwrap();
-      // let user_balance = Unbelievabot::remove_cash(guild_id, msg.author.id.0, dino.cost, 0).await.expect("Unable to remove cash");
-      let replace_message = format!("Your {} was replaced with an injected {}", previous_dino, dino.display_name);
-      responder.respond_injection(
-        "Dino injected",
-        &replace_message,
-        balance.cash,
-        balance.bank,
-        dino.cost,
-      ).await;
-      break;
-    }
-  }
-
-  if found == false {
-    responder.error("Player not found", "Please make sure you log in with a random dinosaur on the server first before injecting anything.").await;
-  }
   Ok(())
 }
 
@@ -230,13 +216,11 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
       return Ok(());
   }
 
-  let ftp_stream_lock = {
-    let data_read = ctx.data.read().await;
-    data_read.get::<FtpStreamContainer>().expect("Expected FTP stream").clone()
-  };
+  let data_read = ctx.data.read().await;
+  let pool = data_read.get::<FtpPool>().expect("Expected ftp stream").clone();
+  let mut ftp_stream = pool.get().await.expect("Expected FTP connection");
 
   let file_name = format!("{}.json", steam_id);
-  let mut ftp_stream = ftp_stream_lock.lock().await;
 
   let mut read_cursor = match ftp_stream.simple_retr(&file_name).await {
     Ok(cursor) => cursor,
@@ -363,13 +347,11 @@ async fn admin_inject(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
       },
   };
 
-  let ftp_stream_lock = {
-    let data_read = ctx.data.read().await;
-    data_read.get::<FtpStreamContainer>().expect("Expected FTP stream").clone()
-  };
+  let data_read = ctx.data.read().await;
+  let pool = data_read.get::<FtpPool>().expect("Expected ftp stream").clone();
+  let mut ftp_stream = pool.get().await.expect("Expected FTP connection");
 
   let file_name = format!("{}.json", steam_id);
-  let mut ftp_stream = ftp_stream_lock.lock().await;
   let file_list = ftp_stream.nlst(None).await.unwrap();
 
   let mut found = false;
