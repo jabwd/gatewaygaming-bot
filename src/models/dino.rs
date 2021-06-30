@@ -178,13 +178,19 @@ impl Dino {
     let list = vec![
       // 0.1 as hatch
       Dino::new("AcroJuv", "Acro juvie", vec!["acro", "acrocanthosaurus"], true, 0, "0.45"),
-      // 0.4 alberto
+      // 0.4 alberto, can be 0.3 or smaller
       Dino::new("Albert", "Albertosaurus", vec!["albert", "alberto", "albertosaurus"], true, 0, "0.45"),
-      Dino::new("BaryJuv", "Baryonyx juvie", vec!["bary", "baryonyx"], true, 0, "0.2"),
-      Dino::new("AnkyJuv", "Ankylosaurus juvie", vec!["anky", "ankylosaurus"], true, 0, "0.2"),
-      Dino::new("StegoJuv", "Stegosaurus juvie", vec!["stegosaurus", "stego"], true, 0, "0.2"),
-      Dino::new("AustroJuv", "Austroraptor juvie", vec!["austro", "austroraptor"], true, 0, "0.2"),
-      Dino::new("HerreraJuv", "Herrerasaurus juvie", vec!["herrera", "herrerasaurus"], true, 0, "0.2"),
+
+      // 0.2 as hatch
+      Dino::new("BaryJuv", "Baryonyx juvie", vec!["bary", "baryonyx"], true, 0, "0.42"),
+      // 0.2 as hatch
+      Dino::new("AnkyJuv", "Ankylosaurus juvie", vec!["anky", "ankylosaurus"], true, 0, "0.56"),
+      // 0.2 as hatch
+      Dino::new("StegoJuv", "Stegosaurus juvie", vec!["stegosaurus", "stego"], true, 0, "0.42"),
+      // 0.2 as hatch
+      Dino::new("AustroJuv", "Austroraptor juvie", vec!["austro", "austroraptor"], true, 0, "0.40"),
+      // 0.2 as hatch
+      Dino::new("HerreraJuv", "Herrerasaurus juvie", vec!["herrera", "herera", "herara", "herrara", "herrerasaurus"], true, 0, "0.40"),
 
       // bary juvie 0.2 - 0.5
       // bary adult 0.5 - 1.0
