@@ -44,7 +44,7 @@ impl Dino {
       Dino::new("DiabloJuvS", "Potat juvie", vec!["potat-juvie", "dibble-juvie"], false, 0, "1.0"),
       Dino::new("DiabloHatchS", "Potato hatchling", vec!["potat-hatch", "dibble-hatch"], false, 0, "0.5"),
 
-      Dino::new("DryoAdultS", "Dryo", vec!["dryo"], true, 10_000, "1.0"),
+      Dino::new("DryoAdultS", "Dryo", vec!["dryo"], true, 1_000, "1.0"),
       Dino::new("DryoJuvS", "Dryo juvie", vec!["dryo-juvie"], false, 0, "0.5"),
       Dino::new("DryoHatchS", "Dryo hatchling", vec!["dryo-hatch"], false, 0, "0.5"),
 
@@ -60,7 +60,7 @@ impl Dino {
       Dino::new("PachyJuvS", "Pachy juvie", vec!["pachy-juvie"], false, 0, "0.5"),
       Dino::new("PachyHatchS", "Pachy hatchling", vec!["pachy-hatch"], false, 0, "0.5"),
 
-      Dino::new("ParaAdultS", "Parasaurolophus", vec!["para", "parasaurolophus"], true, 40_000, "1.0"),
+      Dino::new("ParaAdultS", "Parasaurolophus", vec!["para", "parasaurolophus"], true, 30_000, "1.0"),
       Dino::new("ParaJuvS", "Para juvie", vec!["para-juvie"], false, 0, "0.5"),
       Dino::new("ParaHatchS", "Para hatchling", vec!["para-hatch"], false, 0, "0.5"),
 
@@ -69,10 +69,10 @@ impl Dino {
       Dino::new("TrikeJuvS", "Triceratops juvie", vec!["trike-juvie"], false, 0, "0.5"),
       Dino::new("TrikeHatchS", "Triceratops hatchling", vec!["trike-hatch"], false, 0, "1.0"),
 
-      Dino::new("Anky", "Ankylosaurus", vec!["anky", "ankylosaurus"], true, 45_000, "1.0"),
+      Dino::new("Anky", "Ankylosaurus", vec!["anky", "ankylosaurus"], true, 30_000, "1.0"),
       Dino::new("AnkyJuv", "Ankylosaurus juvie", vec!["anky-juvie"], false, 0, "0.2"),
       
-      Dino::new("Austro", "Austroraptor", vec!["austro", "austroraptor"], true, 5_000, "1.0"),
+      Dino::new("Austro", "Austroraptor", vec!["austro", "austroraptor"], true, 1_000, "1.0"),
       Dino::new("AustroJuv", "Austroraptor juvie", vec!["austro-juvie"], false, 0, "0.2"),
 
       Dino::new("Ava", "Avaceratops", vec!["ava", "avaceratops"], true, 1_000, "1.0"),
@@ -88,20 +88,20 @@ impl Dino {
       Dino::new("Puerta", "Puertasaurus", vec!["pue", "puerta", "puertasaurus"], true, 200_000, "1.0"),
       Dino::new("PuertaJuv", "Puertasaurus juvie", vec!["pue-juvie"], false, 400_000, "1.0"),
 
-      Dino::new("Shant", "Shantungosaurus", vec!["shant", "shantungosaurus"], true, 100_000, "1.0"),
+      Dino::new("Shant", "Shantungosaurus", vec!["shant", "shantungosaurus"], true, 80_000, "1.0"),
       Dino::new("ShantJuv", "Shantunogausurs juvie", vec!["shant-juvie"], false, 0, "0.4"),
 
-      Dino::new("Stego", "Stegosaurus", vec!["stego", "stegosaurus"], true, 50_000, "1.0"),
+      Dino::new("Stego", "Stegosaurus", vec!["stego", "stegosaurus"], true, 45_000, "1.0"),
       Dino::new("StegoJuv", "Stegosaurus juvie", vec!["stego-juvie"], false, 0, "0.2"),
 
-      Dino::new("Theri", "Therizinosaurus", vec!["theri", "therizinosaurus", "thri"], true, 60_000, "1.0"),
+      Dino::new("Theri", "Therizinosaurus", vec!["theri", "therizinosaurus", "thri"], true, 50_000, "1.0"),
       Dino::new("TheriJuv", "Therizinosaurus juvie", vec!["theri-juvie"], false, 0, "0.4"),
 
-      Dino::new("AlloAdultS", "Allosaurus", vec!["allo", "alo", "allosaurus"], true, 50_000, "1.0"),
+      Dino::new("AlloAdultS", "Allosaurus", vec!["allo", "alo", "allosaurus"], true, 40_000, "1.0"),
       Dino::new("AlloJuvS", "Allosaurus juvie", vec!["allo-juvie"], false, 0, "0.5"),
       Dino::new("AlloHatchS", "Allosaurus hatch", vec!["allo-hatch"], false, 0, "0.5"),
 
-      Dino::new("CarnoAdultS", "Carnotaurus", vec!["carno", "carnotaurus"], true, 35_000, "1.0"),
+      Dino::new("CarnoAdultS", "Carnotaurus", vec!["carno", "carnotaurus"], true, 30_000, "1.0"),
       Dino::new("CarnoSubS", "Carno sub", vec!["carno-sub"], false, 0, "0.5"),
       Dino::new("CarnoJuvS", "Carno juvie", vec!["carno-juvie"], false, 0, "0.5"),
       Dino::new("CarnoHatchS", "Carno hatch", vec!["carno-hatch"], false, 0, "0.5"),
@@ -119,13 +119,13 @@ impl Dino {
       Dino::new("UtahJuvS", "Utahraptor juvie", vec!["utah-juvie"], false, 0, "0.6"),
       Dino::new("UtahHatchS", "Utahraptor hatch", vec!["utah-hatch"], false, 0, "0.5"),
 
-      Dino::new("GigaAdultS", "Giganotosaurus", vec!["giga", "giganotosaurus"], true, 65_000, "1.0"),
+      Dino::new("GigaAdultS", "Giganotosaurus", vec!["giga", "giganotosaurus"], true, 60_000, "1.0"),
       Dino::new("GigaSubS", "Giganotosaurus sub", vec!["giga-sub"], true, 30_000, "0.7"),
       Dino::new("GigaJuvS", "Giganotosaurus juvie", vec!["giga-juvie"], false, 0, "0.5"),
       Dino::new("GigaHatchS", "Giganotosaurus hatch", vec!["giga-hatch"], false, 0, "0.4"),
 
       // .8 fresh adult
-      Dino::new("SuchoAdultS", "Suchomimus", vec!["sucho", "suchomimus"], true, 50_000, "1.0"),
+      Dino::new("SuchoAdultS", "Suchomimus", vec!["sucho", "suchomimus"], true, 40_000, "1.0"),
       Dino::new("SuchoJuvS", "Suchomimus juvie", vec!["sucho-juvie"], false, 0, "0.5"),
       Dino::new("SuchoHatchS", "Suchomimus hatch", vec!["sucho-hatch"], false, 0, "0.5"),
 
@@ -135,19 +135,19 @@ impl Dino {
       Dino::new("RexHatchS", "Tyrannosaurus hatch", vec!["rex-hatch"], false, 0, "0.5"),
 
       // 0.6 fresh adult
-      Dino::new("Acro", "Acrocanthosaurus", vec!["acro", "acrocanthosaurus"], true, 60_000, "1.0"),
+      Dino::new("Acro", "Acrocanthosaurus", vec!["acro", "acrocanthosaurus"], true, 45_000, "1.0"),
       Dino::new("AcroJuv", "Acro juvie", vec!["acro-juvie"], false, 0, "0.1"),
 
       Dino::new("Albert", "Albertosaurus", vec!["albert-free", "alberto-free", "albertosaurus-free"], true, 0, "0.4"),
-      Dino::new("Albert", "Albertosaurus", vec!["albert", "alberto", "albertosaurus"], true, 50_000, "1.0"),
+      Dino::new("Albert", "Albertosaurus", vec!["albert", "alberto", "albertosaurus"], true, 40_000, "1.0"),
 
       Dino::new("Bary", "Baryonyx", vec!["bary", "baryonyx"], true, 25_000, "1.0"),
       Dino::new("BaryJuv", "Baryonyx juvie", vec!["bary-juvie"], true, 0, "0.2"),
 
-      Dino::new("Herrera", "Herrerasaurus", vec!["herrera", "herrerasaurus"], true, 5_000, "1.0"),
+      Dino::new("Herrera", "Herrerasaurus", vec!["herrera", "herrerasaurus"], true, 1_000, "1.0"),
       Dino::new("HerreraJuv", "Herrerasaurus juvie", vec!["herrera-juvie"], true, 0, "0.5"),
 
-      Dino::new("Spino", "Spinosaurus", vec!["spino", "spinosaurus"], true, 100_000, "1.0"),
+      Dino::new("Spino", "Spinosaurus", vec!["spino", "spinosaurus"], true, 80_000, "1.0"),
       Dino::new("SpinoJuv", "Spinosaurus juvie", vec!["spino-juvie"], false, 0, "0.4"),
 
       Dino::new("Velo", "Velociraptor", vec!["velo", "velociraptor"], true, 1_000, "1.0")
