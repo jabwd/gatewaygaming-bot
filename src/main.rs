@@ -6,6 +6,7 @@ extern crate chrono;
 // use crate::diesel::Connection;
 // use serenity::futures::StreamExt;
 // use serenity::model::prelude::MembersIter;
+use serenity::model::prelude::Activity;
 use serenity::model::prelude::Reaction;
 use diesel::{
   PgConnection,
@@ -98,8 +99,10 @@ impl EventHandler for Handler {
       
   }
 
-  async fn ready(&self, _ctx: Context, _ready: Ready) {
+  async fn ready(&self, ctx: Context, _ready: Ready) {
     println!("{{GG}} Bot is ready for rulebreaks and general scumbaggery");
+
+    ctx.set_activity(Activity::playing("with ideas to legbreak you")).await;
     // println!("=> Connected to discord, loading guild data…");
     // if let Ok(guilds) = ready.user.guilds(&ctx).await {
     //     for (index, guild) in guilds.into_iter().enumerate() {
