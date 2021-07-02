@@ -78,7 +78,7 @@ impl Dino {
       Dino::new("Ava", "Avaceratops", vec!["ava", "avaceratops"], true, 1_000, "1.0"),
       Dino::new("AvaJuv", "Avaceratops juvie", vec!["ava-juvie"], false, 0, "0.5"),
 
-      Dino::new("Camara", "Camarasaurus", vec!["cama", "camarasaurus"], true, 150_000, "1.0"),
+      Dino::new("Camara", "Camarasaurus", vec!["cama", "camarasaurus"], true, 100_000, "1.0"),
 
       Dino::new("Oro", "Orodromeus", vec!["oro", "orodromeus"], true, 1_000, "1.0"),
       
@@ -107,7 +107,7 @@ impl Dino {
       Dino::new("CarnoHatchS", "Carno hatch", vec!["carno-hatch"], false, 0, "0.5"),
 
       Dino::new("CeratoAdultS", "Ceratosaurus", vec!["cerato", "ceratosaurus"], true, 30_000, "1.0"),
-      Dino::new("CeratoJuvS", "Hell spawn juvie", vec!["dino-missile", "cerato-juvie"], true, 15_000, "1.0"),
+      Dino::new("CeratoJuvS", "Hell spawn juvie", vec!["dino-missile", "cerato-juvie"], false, 15_000, "1.0"),
       Dino::new("CeratoHatchS", "Ceratosaurus hatch", vec!["cerato-hatch"], false, 0, "0.5"),
 
       Dino::new("DiloAdultS", "Dilophosaurus", vec!["dilo", "dilophosaurus"], true, 20_000, "1.0"),
@@ -130,7 +130,7 @@ impl Dino {
       Dino::new("SuchoHatchS", "Suchomimus hatch", vec!["sucho-hatch"], false, 0, "0.5"),
 
       Dino::new("RexAdultS", "Tyrannosaurus rex", vec!["trex", "rex", "tyrannosaurus"], true, 70_000, "1.0"),
-      Dino::new("RexSubS", "Tyrannosaurus sub", vec!["rex-sub"], true, 35_000, "0.78"),
+      Dino::new("RexSubS", "Tyrannosaurus sub", vec!["rex-sub"], true, 30_000, "0.78"),
       Dino::new("RexJuvS", "Tyrannosaurus juvie", vec!["rex-juvie"], false, 0, "0.5"),
       Dino::new("RexHatchS", "Tyrannosaurus hatch", vec!["rex-hatch"], false, 0, "0.5"),
 
