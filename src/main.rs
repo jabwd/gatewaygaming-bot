@@ -3,11 +3,7 @@ extern crate diesel;
 extern crate dotenv;
 extern crate chrono;
 
-// use crate::diesel::Connection;
-// use serenity::futures::StreamExt;
-// use serenity::model::prelude::MembersIter;
-use serenity::model::prelude::Activity;
-use serenity::model::prelude::Reaction;
+use serenity::model::prelude::{Activity, Reaction};
 use diesel::{
   PgConnection,
   r2d2::{ ConnectionManager, Pool },
@@ -27,10 +23,8 @@ use serenity::{
   },
   http::Http,
   model::{event::ResumedEvent, gateway::Ready, channel::Message},
-  // model::guild::*,
   prelude::*
 };
-use async_ftp::FtpStream;
 use commands::{
   dino_injections::*,
   check_dino::*,
@@ -40,6 +34,8 @@ use commands::{
   dino_garage::*,
 };
 use services::ftp::FtpConnectionManager;
+use contexts::garage::*;
+use tokio::sync::RwLock;
 
 mod commands;
 mod entities;
@@ -47,6 +43,16 @@ mod schema;
 mod models;
 mod internal;
 mod services;
+mod contexts;
+
+pub struct ReactionContext {
+  pub garage_context_list: Vec<GarageResponseReactionContext>,
+  pub bot_user_id: u64,
+}
+
+impl TypeMapKey for ReactionContext {
+  type Value = Arc<RwLock<ReactionContext>>;
+}
 
 pub struct ShardManagerContainer;
 
@@ -90,67 +96,78 @@ struct Handler;
   sex_change,
   garage_list,
   garage_save_dino,
+  garage_delete,
+  garage_swap_dino,
 )]
 struct General;
 
 #[async_trait]
 impl EventHandler for Handler {
-  async fn reaction_add(&self, _ctx: Context, _add_reaction: Reaction) {
-      
+  async fn reaction_add(&self, ctx: Context, add_reaction: Reaction) {
+    let msg = match add_reaction.message(&ctx).await {
+      Ok(msg) => msg,
+      Err(why) => {
+        println!("Unable to handle reaction: {0}", why);
+        return;
+      }
+    };
+
+    let reaction_context_lock = {
+      let data = ctx.data.read().await;
+  
+      data.get::<crate::ReactionContext>().expect("Unable to find reaction context").clone()
+    };
+  
+    {
+      let mut reaction_context = reaction_context_lock.write().await;
+
+      let user = add_reaction.user(&ctx).await.unwrap().id.0;
+      if user == reaction_context.bot_user_id {
+        return;
+      }
+      let slice = &reaction_context.garage_context_list[..];
+      let mut idx = 0;
+      for garage_ctx in slice.iter() {
+        if garage_ctx.author_id == user && garage_ctx.msg_id == msg.id.0 {
+          let _ = add_reaction.delete(&ctx).await;
+          match garage_ctx.response_type {
+            GarageResponseType::List => {
+              let _ = garage_handle_list_reaction(&ctx, &msg, &add_reaction, &garage_ctx).await;
+            },
+            GarageResponseType::Delete => {
+              let _ = garage_handle_delete_reaction(&ctx, &msg, &add_reaction, &garage_ctx).await;
+            },
+            GarageResponseType::Swap => {
+              let _ = garage_handle_swap_dino(&ctx, &msg, &add_reaction, &garage_ctx).await;
+            }
+          }
+          reaction_context.garage_context_list.remove(idx);
+          return;
+        }
+        idx += 1;
+      }
+    }
   }
 
-  async fn ready(&self, ctx: Context, _ready: Ready) {
+  async fn ready(&self, ctx: Context, ready: Ready) {
     println!("{{GG}} Bot is ready for rulebreaks and general scumbaggery");
 
-    ctx.set_activity(Activity::playing("with ideas to legbreak you")).await;
-    // println!("=> Connected to discord, loading guild data…");
-    // if let Ok(guilds) = ready.user.guilds(&ctx).await {
-    //     for (index, guild) in guilds.into_iter().enumerate() {
-    //         println!("{}: {}:{}", index, guild.name, guild.id);
-    //         let mut members = MembersIter::<Http>::stream(&ctx, guild.id).boxed();
-    //         while let Some(member_result) = members.next().await {
-    //             match member_result {
-    //                 Ok(member) => println!(
-    //                     "{} is {}",
-    //                     member,
-    //                     member.display_name()
-    //                 ),
-    //                 Err(error) => eprintln!("Error listing members: {}", error),
-    //             }
-    //         }
-    //     }
-    // }
+    ctx.set_activity(Activity::playing("with ball pythons")).await;
+
+    let reaction_context_lock = {
+      let data = ctx.data.read().await;
+  
+      data.get::<crate::ReactionContext>().expect("Unable to find reaction context").clone()
+    };
+  
+    {
+      let mut reaction_context = reaction_context_lock.write().await;
+  
+      reaction_context.bot_user_id = ready.user.id.0;
+    }
   }
 
-  async fn message(&self, _ctx: Context, _msg: Message) {
-    // let guild = msg.guild(&ctx).await.unwrap();
-    
-    // for (roleId, role) in guild.roles {
-    //     let has_role = msg.author.has_role(&ctx, guild.id, roleId).await;
-    //     println!("User has role: {}-{}: {:?}", role.id, role.name, has_role);
-    // }
-    // let guild = msg.guild(&ctx).await.unwrap();
-    // println!("Guild: {}", guild.name);
-    // for (roleId, role) in guild.roles {
-    //     println!("roleId: {} {}", roleId, role.name);
-    // }
-
-    // let data = ctx.data.read().await;
-    // {
-    //     let db = data.get::<DbPool>().unwrap();
-    //     let user = models::user::User::get(msg.author.id, &db);
-
-    //     models::user::User::update_last_active(user.id, &db);
-    // }
-    // match msg.member {
-    //     Some(member) => println!("User that sent the message: {:?}", member),
-    //     None => println!("No use associated with message"),
-    // }
-
-    // match msg.guild_id {
-    //     Some(guild_id) => println!("Guild id: {:?}", guild_id.0),
-    //     None => println!("No guild id found"),
-    // }
+  async fn message(&self, _ctx: Context, _msg: Message) {    
   }
 
   async fn resume(&self, _: Context, _: ResumedEvent) {
@@ -178,14 +195,6 @@ async fn main() {
     let ftp_password = env::var("FTP_PASSWORD")
         .expect("FTP_PASSWORD must be set");
 
-    // println!("=> Connecting to FTP...");
-    // let mut ftp_stream = FtpStream::connect(ftp_address).await
-    //     .expect("Unable to connect to FTP server");
-    // println!("=> Authenticating FTP");
-    // ftp_stream.login(&ftp_username, &ftp_password).await.unwrap();
-    // ftp_stream.cwd("172.96.161.98_14000/TheIsle/Saved/Databases/Survival/Players").await.unwrap();
-    // println!("=> FTP Connected and ready");
-
     // Set up PSQL connection manager and connection pool
     let manager: ConnectionManager<PgConnection> = ConnectionManager::new(database_url);
     let pool = Pool::builder()
@@ -194,9 +203,10 @@ async fn main() {
         .expect("Could not build database connection pool");
     let pool = Arc::new(pool);
 
+    // Set up FTP connection pool
     let ftp_manager: FtpConnectionManager = FtpConnectionManager::new(&ftp_address, &ftp_username, &ftp_password);
     let ftp_pool = bb8::Pool::builder()
-      .max_size(2)
+      .max_size(1)
       .build(ftp_manager)
       .await
       .expect("Could not build ftp connection pool");
@@ -234,13 +244,19 @@ async fn main() {
             .await
             .expect("Err creating client");
 
+    let reaction_context = ReactionContext
+    {
+      garage_context_list: Vec::new(),
+      bot_user_id: 0,
+    };
+    let reaction_context = Arc::new(RwLock::new(reaction_context));
     
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
         data.insert::<DbPool>(pool.clone());
         data.insert::<FtpPool>(ftp_pool.clone());
-        // data.insert::<FtpStreamContainer>(Arc::new(Mutex::new(ftp_stream)));
+        data.insert::<ReactionContext>(reaction_context.clone());
     }
 
     let shard_manager = client.shard_manager.clone();

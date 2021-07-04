@@ -1,9 +1,6 @@
-use serenity::{model::{channel::Message, prelude::User}, prelude::*, utils::Colour};
+use serenity::{model::{channel::{Message, ReactionType}, prelude::User}, prelude::*, utils::Colour};
 
-use crate::models::{
-  dino::Dino,
-  teleport::Teleport
-};
+use crate::models::{dino::Dino, garage::Garage, teleport::Teleport};
 
 pub struct MessageResponder<'a> {
   pub ctx: &'a Context,
@@ -11,6 +8,25 @@ pub struct MessageResponder<'a> {
 }
 
 impl MessageResponder<'_> {
+  pub async fn in_progress<D>(
+    &self,
+    title: D,
+    message: D,
+  ) -> Result<Message, serenity::Error> where D: ToString  {
+    let result = self.msg.channel_id.send_message(&self.ctx.http, |m| {
+      m.embed(|e| {
+          e.title(title);
+          e.description(message);
+          e.colour(Colour::from_rgb(200, 200, 200));
+          e
+      });
+      m.reference_message(self.msg);
+      m
+    }).await;
+
+    result
+  }
+
   pub async fn error<D>(
     &self,
     title: D,
@@ -59,6 +75,101 @@ impl MessageResponder<'_> {
       m.reference_message(self.msg);
       m
     }).await;
+  }
+
+  pub async fn dino_garage(
+    &self,
+    slots: &Vec<Garage>,
+    is_delete: bool
+  ) -> Result<Message, serenity::Error> {
+    let mut list_str = String::new();
+    let mut count: i32 = 1;
+    let mut reactions = Vec::new();
+
+    let emojis = vec![
+      "❌",
+      "1️⃣",
+      "2️⃣",
+      "3️⃣",
+      "4️⃣",
+      "5️⃣"
+    ];
+    reactions.push(ReactionType::Unicode("❌".to_string()));
+    for slot in slots {
+      let dino_name = Dino::game_identifier_to_display_name(&slot.character_class);
+      list_str.push_str(&format!("{}) {}\n", count, dino_name));
+      if let Some(emoji) = emojis.get(count as usize) {
+        let reaction = ReactionType::Unicode(emoji.to_string());
+        reactions.push(reaction);
+        count += 1;
+      }
+    }
+    let type_format: String;
+    if is_delete {
+      type_format = "delete".to_string();
+    } else {
+      type_format = "release".to_string();
+    }
+    list_str.push_str(&format!("\nSelect which dino you would like to {}:", type_format));
+
+    let result = self.msg.channel_id.send_message(&self.ctx.http, |m| {
+      m.embed(|e| {
+          e.title("Your dino garage:");
+          e.description(list_str);
+          e.colour(Colour::from_rgb(50, 220, 50));
+          e
+      });
+      m.reactions(reactions);
+      m.reference_message(self.msg);
+      m
+    }).await;
+
+    result
+  }
+
+  pub async fn dino_garage_swap(
+    &self,
+    slots: &Vec<Garage>,
+    other_dino: &String,
+  ) -> Result<Message, serenity::Error> {
+    let mut list_str = String::new();
+    let mut count: i32 = 1;
+    let mut reactions = Vec::new();
+
+    let emojis = vec![
+      "❌",
+      "1️⃣",
+      "2️⃣",
+      "3️⃣",
+      "4️⃣",
+      "5️⃣"
+    ];
+    reactions.push(ReactionType::Unicode("❌".to_string()));
+    for slot in slots {
+      let dino_name = Dino::game_identifier_to_display_name(&slot.character_class);
+      list_str.push_str(&format!("{}) {}\n", count, dino_name));
+      if let Some(emoji) = emojis.get(count as usize) {
+        let reaction = ReactionType::Unicode(emoji.to_string());
+        reactions.push(reaction);
+        count += 1;
+      }
+    }
+
+    list_str.push_str(&format!("\nSelect which dino you would like to swap your **{}** with:", other_dino));
+
+    let result = self.msg.channel_id.send_message(&self.ctx.http, |m| {
+      m.embed(|e| {
+          e.title("Swap dino:");
+          e.description(list_str);
+          e.colour(Colour::from_rgb(50, 220, 50));
+          e
+      });
+      m.reactions(reactions);
+      m.reference_message(self.msg);
+      m
+    }).await;
+
+    result
   }
 
   pub async fn cb_usage(&self) {

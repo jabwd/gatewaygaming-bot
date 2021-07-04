@@ -56,16 +56,16 @@ impl ManageConnection for FtpConnectionManager {
     &self,
     conn: &mut bb8::PooledConnection<'_, Self>
   ) -> Result<(), FtpError> {
-    println!("Checking connection health");
+    println!("=> Checking connection health");
     let ftp_stream = conn.deref_mut();
 
     match ftp_stream.pwd().await {
       Ok(_) => {
-        println!("Connection OK");
+        println!("=> Connection: [ OK ]");
         return Ok(());
       },
       Err(err) => {
-        println!("Connection bad :(");
+        println!("=> Connection: [ ERR ]");
         return Err(err);
       }
     }

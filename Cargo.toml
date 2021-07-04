@@ -1,6 +1,6 @@
 [package]
 name = "gatewaygamingbot"
-version = "0.6.2"
+version = "0.7.0"
 authors = ["Antwan van Houdt <jabwd@exurion.com>"]
 edition = "2018"
 

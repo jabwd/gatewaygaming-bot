@@ -48,7 +48,7 @@ pub async fn slay(ctx: &Context, msg: &Message) -> CommandResult {
 
   ftp_stream.rm(&file_name).await.expect("Unable to delete file");
 
-  responder.success("Slay succeeded", format!("Your {} was slain, hf with spawning at murky again :D", previous_dino).as_str()).await;
+  responder.success("Slay succeeded", format!("Your {} was slain. Crumpets were buttered.", previous_dino).as_str()).await;
 
   Ok(())
 }

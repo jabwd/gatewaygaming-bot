@@ -68,6 +68,7 @@ table! {
         discord_id -> Text,
         last_active -> Nullable<Timestamptz>,
         steam_id -> Nullable<Text>,
+        last_tp -> Nullable<Timestamptz>,
     }
 }
 

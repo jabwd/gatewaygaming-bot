@@ -12,6 +12,7 @@ pub struct User {
     pub discord_id: String,
     pub last_active: Option<DateTime<Utc>>,
     pub steam_id: Option<String>,
+    pub last_tp: Option<DateTime<Utc>>,
 }
 
 #[derive(Insertable)]
@@ -70,6 +71,12 @@ impl User {
         let db = db.get().unwrap();
 
         diesel::update(users.find(user_id)).set(steam_id.eq(new_steam_id)).get_result::<User>(&db).expect("Unable to find user")
+    }
+
+    pub fn update_last_tp(&self, db: &DbPoolType) -> Self {
+        let db = db.get().unwrap();
+        println!("Updating last tp");
+        diesel::update(users.find(self.id)).set(last_tp.eq(Utc::now())).get_result::<User>(&db).expect("Unable to find user")
     }
     // pub fn update_last_active(user_id: i32, db: &DbPoolType) -> Self {
     //     let db = db.get().unwrap();

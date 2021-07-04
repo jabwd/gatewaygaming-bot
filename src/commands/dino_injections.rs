@@ -164,6 +164,11 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
       }
   };
 
+  let yesno = match args.single::<String>() {
+    Ok(yesno) => Some(yesno),
+    Err(_) => None,
+  };
+
   let list = Dino::list();
   let mut dino_object: Option<&Dino> = None;
   for dino in list.iter() {
@@ -216,6 +221,7 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
       return Ok(());
   }
 
+  let progress_msg = responder.in_progress("Injecting dino", "Contemplating whether to leg break you…").await.expect("Expected a progress msg");
   let data_read = ctx.data.read().await;
   let pool = data_read.get::<FtpPool>().expect("Expected ftp stream").clone();
   let mut ftp_stream = pool.get().await.expect("Expected FTP connection");
@@ -237,6 +243,8 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
   let user_balance = Unbelievabot::remove_cash(guild_id, msg.author.id.0, dino.cost, 0).await.expect("Unable to remove cash");
   ftp_stream.put(&file_name, &mut reader).await.unwrap();
 
+  let _ = progress_msg.delete(&ctx).await;
+
   let replace_message = format!("Your {} was replaced with an injected {}", previous_dino, dino.display_name);
   responder.respond_injection(
     "Dino injected",
@@ -245,6 +253,12 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
     user_balance.bank,
     dino.cost,
   ).await;
+
+  if let Some(yesno) = yesno {
+    if yesno == "y" || yesno == "n" {
+      responder.success("", "P.S. I don't need that y/n thing on the end of the command :)").await;
+    }
+  }
 
   Ok(())
 }

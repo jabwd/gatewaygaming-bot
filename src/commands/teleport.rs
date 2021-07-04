@@ -1,5 +1,4 @@
-use crate::services::message::MessageResponder;
-use crate::services::unbelievabot::*;
+use chrono::prelude::*;
 use serenity::{
     prelude::*,
     model::{
@@ -14,6 +13,11 @@ use crate::{
     entities::player::Player,
     internal::*,
     FtpPool,
+    DbPool,
+    services::{
+      message::MessageResponder,
+      unbelievabot::*,
+    }
 };
 
 #[command]
@@ -24,9 +28,6 @@ pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
     ctx,
     msg,
   };
-
-  // tp to murky: Wisco's favorite spawn
-  // Slay: Slay confirmed. Crumpets buttered.
 
   let guild_id = match msg.guild_id {
     Some(guild_id_v) => guild_id_v.0,
@@ -55,8 +56,26 @@ pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
     responder.tp_usage().await;
     return Ok(());
   }
+  let tp_cd_minutes = 10;
+  let tp_cd_seconds = tp_cd_minutes * 60;
 
   let user = get_message_user(&ctx, &msg).await;
+  if let Some(last_tp) = user.last_tp {
+    let now = Utc::now();
+    let duration_since = now.signed_duration_since(last_tp);
+    let num_minutes = duration_since.num_minutes();
+    let num_seconds = duration_since.num_seconds();
+    if duration_since.num_minutes() < tp_cd_minutes {
+      let minutes_left = tp_cd_minutes - num_minutes - 1;
+      let seconds_left = (tp_cd_seconds - num_seconds) % 60;
+      responder.error(
+        "TP on cooldown", 
+        format!("You can only tp every 10 minutes. Please wait another {0}m, {1}s", minutes_left, seconds_left).as_str()
+      ).await;
+
+      return Ok(());
+    }
+  }
   let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {
@@ -74,6 +93,7 @@ pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
 
   let data_read = ctx.data.read().await;
   let pool = data_read.get::<FtpPool>().expect("Expected ftp stream").clone();
+  let db = data_read.get::<DbPool>().unwrap();
   let mut ftp_stream = pool.get().await.expect("Expected FTP connection");
   let file_name = format!("{}.json", steam_id);
 
@@ -96,6 +116,7 @@ pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
   let user_balance = Unbelievabot::remove_cash(guild_id, msg.author.id.0, cost, 0).await.expect("Unable to remove cash");
   ftp_stream.put(&file_name, &mut reader).await.unwrap();
   responder.respond_tp("Teleport done", format!("Teleported your {} to {}", previous_dino, location_label).as_str(), user_balance.cash, user_balance.bank, cost, &msg.author).await;
+  user.update_last_tp(&db);
 
   Ok(())
 }
