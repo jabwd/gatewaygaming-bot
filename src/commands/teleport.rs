@@ -94,6 +94,7 @@ pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
   let data_read = ctx.data.read().await;
   let pool = data_read.get::<FtpPool>().expect("Expected ftp stream").clone();
   let db = data_read.get::<DbPool>().unwrap();
+  let progress_msg = responder.in_progress("Teleporting dino", "Negotiating gravity with the game server…").await.expect("Expected a progress msg");
   let mut ftp_stream = pool.get().await.expect("Expected FTP connection");
   let file_name = format!("{}.json", steam_id);
 
@@ -115,6 +116,7 @@ pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
   let mut reader = Cursor::new(player_file_pretty_str.as_bytes());
   let user_balance = Unbelievabot::remove_cash(guild_id, msg.author.id.0, cost, 0).await.expect("Unable to remove cash");
   ftp_stream.put(&file_name, &mut reader).await.unwrap();
+  let _ = progress_msg.delete(&ctx).await;
   responder.respond_tp("Teleport done", format!("Teleported your {} to {}", previous_dino, location_label).as_str(), user_balance.cash, user_balance.bank, cost, &msg.author).await;
   user.update_last_tp(&db);
 
