@@ -36,6 +36,9 @@ use commands::{
 use services::ftp::FtpConnectionManager;
 use contexts::garage::*;
 use tokio::sync::RwLock;
+use tokio::time::{timeout, Duration};
+use tokio::time;
+use tokio::task;
 
 mod commands;
 mod entities;
@@ -176,98 +179,109 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
-    dotenv().ok();
-    dotenv::dotenv().expect("Failed to load environment variables from .env file");
+  dotenv().ok();
+  dotenv::dotenv().expect("Failed to load environment variables from .env file");
 
-    // Load in all the env variables we will be using before setting up anything else
-    #[cfg(debug_assertions)]
-    let token = env::var("DISCORD_DEV_TOKEN")
-        .expect("Expected a discord authentication token in the environment");
-    #[cfg(not(debug_assertions))]
-    let token = env::var("DISCORD_TOKEN")
-        .expect("Expected a discord authentication token in the environment");
-    let database_url = env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set");
-    let ftp_address = env::var("FTP_ADDRESS")
-        .expect("FTP_ADDRESS must be set");
-    let ftp_username = env::var("FTP_USERNAME")
-        .expect("FTP_USERNAME must be set");
-    let ftp_password = env::var("FTP_PASSWORD")
-        .expect("FTP_PASSWORD must be set");
+  // Load in all the env variables we will be using before setting up anything else
+  #[cfg(debug_assertions)]
+  let token = env::var("DISCORD_DEV_TOKEN")
+    .expect("Expected a discord authentication token in the environment");
+  #[cfg(not(debug_assertions))]
+  let token = env::var("DISCORD_TOKEN")
+    .expect("Expected a discord authentication token in the environment");
+  let database_url = env::var("DATABASE_URL")
+    .expect("DATABASE_URL must be set");
+  let ftp_address = env::var("FTP_ADDRESS")
+    .expect("FTP_ADDRESS must be set");
+  let ftp_username = env::var("FTP_USERNAME")
+    .expect("FTP_USERNAME must be set");
+  let ftp_password = env::var("FTP_PASSWORD")
+    .expect("FTP_PASSWORD must be set");
 
-    // Set up PSQL connection manager and connection pool
-    let manager: ConnectionManager<PgConnection> = ConnectionManager::new(database_url);
-    let pool = Pool::builder()
-        .max_size(1)
-        .build(manager)
-        .expect("Could not build database connection pool");
-    let pool = Arc::new(pool);
-
-    // Set up FTP connection pool
-    let ftp_manager: FtpConnectionManager = FtpConnectionManager::new(&ftp_address, &ftp_username, &ftp_password);
-    let ftp_pool = bb8::Pool::builder()
+  // Set up PSQL connection manager and connection pool
+  let manager: ConnectionManager<PgConnection> = ConnectionManager::new(database_url);
+  let pool = Pool::builder()
       .max_size(1)
-      .build(ftp_manager)
-      .await
-      .expect("Could not build ftp connection pool");
-    let ftp_pool = Arc::new(ftp_pool);
+      .build(manager)
+      .expect("Could not build database connection pool");
+  let pool = Arc::new(pool);
 
-    let http = Http::new_with_token(&token);
+  // Set up FTP connection pool
+  let ftp_manager: FtpConnectionManager = FtpConnectionManager::new(&ftp_address, &ftp_username, &ftp_password);
+  let ftp_pool = bb8::Pool::builder()
+    .max_size(1)
+    .build(ftp_manager)
+    .await
+    .expect("Could not build ftp connection pool");
+  let ftp_pool = Arc::new(ftp_pool);
 
-    let (owners, _bot_id) = match http.get_current_application_info().await {
-        Ok(info) => {
-            let mut owners = HashSet::new();
-            owners.insert(info.owner.id);
-            (owners, info.id)
-        },
-        Err(reason) => panic!("Could not load discord bot info: {:?}", reason),
-    };
+  let http = Http::new_with_token(&token);
 
-    // Create the framework
-    #[cfg(debug_assertions)]
-    let framework = StandardFramework::new()
-        .configure(|c| c
-            .owners(owners)
-            .prefix("ggdev."))
-        .group(&GENERAL_GROUP);
+  let (owners, _bot_id) = match http.get_current_application_info().await {
+      Ok(info) => {
+          let mut owners = HashSet::new();
+          owners.insert(info.owner.id);
+          (owners, info.id)
+      },
+      Err(reason) => panic!("Could not load discord bot info: {:?}", reason),
+  };
 
-    #[cfg(not(debug_assertions))]
-    let framework = StandardFramework::new()
-        .configure(|c| c
-            .owners(owners)
-            .prefix("gg."))
-        .group(&GENERAL_GROUP);
-    
-    let mut client = Client::builder(&token)
-            .framework(framework)
-            .event_handler(Handler)
-            .await
-            .expect("Err creating client");
+  // Create the framework
+  #[cfg(debug_assertions)]
+  let framework = StandardFramework::new()
+      .configure(|c| c
+          .owners(owners)
+          .prefix("ggdev."))
+      .group(&GENERAL_GROUP);
 
-    let reaction_context = ReactionContext
-    {
-      garage_context_list: Vec::new(),
-      bot_user_id: 0,
-    };
-    let reaction_context = Arc::new(RwLock::new(reaction_context));
-    
-    {
-        let mut data = client.data.write().await;
-        data.insert::<ShardManagerContainer>(client.shard_manager.clone());
-        data.insert::<DbPool>(pool.clone());
-        data.insert::<FtpPool>(ftp_pool.clone());
-        data.insert::<ReactionContext>(reaction_context.clone());
+  #[cfg(not(debug_assertions))]
+  let framework = StandardFramework::new()
+      .configure(|c| c
+          .owners(owners)
+          .prefix("gg."))
+      .group(&GENERAL_GROUP);
+  
+  let mut client = Client::builder(&token)
+          .framework(framework)
+          .event_handler(Handler)
+          .await
+          .expect("Err creating client");
+
+  let reaction_context = ReactionContext
+  {
+    garage_context_list: Vec::new(),
+    bot_user_id: 0,
+  };
+  let reaction_context = Arc::new(RwLock::new(reaction_context));
+  
+  {
+    let mut data = client.data.write().await;
+    data.insert::<ShardManagerContainer>(client.shard_manager.clone());
+    data.insert::<DbPool>(pool.clone());
+    data.insert::<FtpPool>(ftp_pool.clone());
+    data.insert::<ReactionContext>(reaction_context.clone());
+  }
+
+  let shard_manager = client.shard_manager.clone();
+
+  println!("=> Starting discord service");
+  let forever = task::spawn(async move {
+    let pool = &ftp_pool;
+    let mut interval = time::interval(Duration::from_secs(30));
+    loop {
+      interval.tick().await;
+      println!("=> Check ftp connection");
+      let mut ftp_stream = pool.get().await.expect("Expected FTP connection");
+      ftp_stream.noop().await.expect("No op failed on FTP Connection");
     }
+  });
+  tokio::spawn(async move {
+    forever.await.expect("Loop not handled");
+    tokio::signal::ctrl_c().await.expect("Could not register SIGKILL handler");
+    shard_manager.lock().await.shutdown_all().await;
+  });
 
-    let shard_manager = client.shard_manager.clone();
-
-    println!("=> Starting discord service");
-    tokio::spawn(async move {
-        tokio::signal::ctrl_c().await.expect("Could not register SIGKILL handler");
-        shard_manager.lock().await.shutdown_all().await;
-    });
-
-    if let Err(reason) = client.start().await {
-        println!("Client error: {:?}", reason);
-    }
+  if let Err(reason) = client.start().await {
+    println!("Client error: {:?}", reason);
+  }
 }
