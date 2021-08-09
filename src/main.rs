@@ -93,7 +93,6 @@ struct Handler;
   slay,
   register,
   dino_request,
-  random_dino,
   check_dino,
   teleport,
   sex_change,
@@ -101,6 +100,7 @@ struct Handler;
   garage_save_dino,
   garage_delete,
   garage_swap_dino,
+  exterminate_garage,
 )]
 struct General;
 
@@ -197,6 +197,8 @@ async fn main() {
     .expect("FTP_USERNAME must be set");
   let ftp_password = env::var("FTP_PASSWORD")
     .expect("FTP_PASSWORD must be set");
+  let prefix = env::var("DISCORD_PREFIX")
+    .expect("DISCORD_PREFIX not set");
 
   // Set up PSQL connection manager and connection pool
   let manager: ConnectionManager<PgConnection> = ConnectionManager::new(database_url);
@@ -231,14 +233,14 @@ async fn main() {
   let framework = StandardFramework::new()
       .configure(|c| c
           .owners(owners)
-          .prefix("ggdev."))
+          .prefix(format!("dev{}", &prefix).as_str()))
       .group(&GENERAL_GROUP);
 
   #[cfg(not(debug_assertions))]
   let framework = StandardFramework::new()
       .configure(|c| c
           .owners(owners)
-          .prefix("gg."))
+          .prefix(&prefix))
       .group(&GENERAL_GROUP);
   
   let mut client = Client::builder(&token)

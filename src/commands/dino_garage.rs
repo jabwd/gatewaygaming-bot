@@ -257,9 +257,6 @@ pub async fn garage_handle_delete_reaction(ctx: &Context, msg: &Message, reactio
     msg: referenced_message,
   };
 
-  let discord_user = reaction.user(&ctx).await.unwrap();
-  let user = get_user_for_id(&ctx, discord_user.id).await;
-
   // Determine which slot we wanted according to the emoji number
   let idx: Option<usize> = match reaction.emoji.to_string().as_str() {
     "❌" => None,

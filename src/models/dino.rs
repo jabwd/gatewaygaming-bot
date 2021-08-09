@@ -86,7 +86,7 @@ impl Dino {
       Dino::new("Taco", "Taco", vec!["taco", ""], true, 1_000, "1.0"),
 
       Dino::new("Puerta", "Puertasaurus", vec!["pue", "puerta", "puertasaurus"], true, 200_000, "1.0"),
-      Dino::new("PuertaJuv", "Puertasaurus juvie", vec!["pue-juvie"], false, 400_000, "1.0"),
+      Dino::new("PuertaJuv", "Puertasaurus juvie", vec!["pue-juvie"], true, 400_000, "1.0"),
 
       Dino::new("Shant", "Shantungosaurus", vec!["shant", "shantungosaurus"], true, 80_000, "1.0"),
       Dino::new("ShantJuv", "Shantunogausurs juvie", vec!["shant-juvie"], false, 0, "0.4"),
