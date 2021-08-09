@@ -36,12 +36,13 @@ impl ManageConnection for FtpConnectionManager {
     println!("=> FTP Connected, authenticating...");
     match ftp_stream.login(&self.username, &self.password).await {
       Err(err) => {
+        println!("FTP Error: {:?}", err);
         return Err(err);
       },
       _ => (),
     };
     println!("=> FTP Authenticated, locating player files");
-    match ftp_stream.cwd("172.96.161.98_14000/TheIsle/Saved/Databases/Survival/Players").await {
+    match ftp_stream.cwd("104.206.108.250_14020/TheIsle/Saved/Databases/Survival/Players").await {
       Err(err) => {
         return Err(err);
       },
