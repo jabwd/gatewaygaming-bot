@@ -25,7 +25,7 @@ pub async fn check_dino(ctx: &Context, msg: &Message) -> CommandResult {
   let steam_id = match user.steam_id {
     Some(id) => id,
     None => {
-      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using the register command").await;
       return Ok(());
     }
   };
@@ -36,8 +36,6 @@ pub async fn check_dino(ctx: &Context, msg: &Message) -> CommandResult {
   let mut ftp_stream = pool.get().await.expect("Expected FTP connection");
   let mut read_cursor = ftp_stream.simple_retr(&file_name).await.unwrap();
   let player_object: Player = serde_json::from_reader(&mut read_cursor).unwrap();
-  println!("Prev dino: {:?}", player_object);
-  println!("Isle location: {:?}\nIsle Rotation: {:?}\nCamera rotation: {:?}\nCamera distance: {:?}", player_object.location_isle_v3, player_object.rotation_isle_v3, player_object.camera_rotation_isle_v3, player_object.camera_distance_isle_v3);
 
   Ok(())
 }

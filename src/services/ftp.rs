@@ -59,7 +59,7 @@ impl ManageConnection for FtpConnectionManager {
     println!("=> Checking connection health");
     let ftp_stream = conn.deref_mut();
 
-    match ftp_stream.pwd().await {
+    match ftp_stream.noop().await {
       Ok(_) => {
         println!("=> Connection: [ OK ]");
         return Ok(());

@@ -116,7 +116,7 @@ pub async fn garage_handle_list_reaction(ctx: &Context, msg: &Message, reaction:
   let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {
-      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+      responder.error("No SteamID linked", crate::STEAM_ID_MESSAGE).await;
       return Ok(());
     }
   };
@@ -182,7 +182,7 @@ pub async fn garage_handle_swap_dino(ctx: &Context, msg: &Message, reaction: &Re
   let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {
-      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+      responder.error("No SteamID linked", crate::STEAM_ID_MESSAGE).await;
       return Ok(());
     }
   };
@@ -309,7 +309,7 @@ async fn garage_swap_dino(ctx: &Context, msg: &Message) -> CommandResult {
   let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {
-      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+      responder.error("No SteamID linked", crate::STEAM_ID_MESSAGE).await;
       return Ok(());
     }
   };
@@ -446,7 +446,7 @@ async fn restore_garage_slot(ctx: &Context, msg: &Message, mut _args: Args) -> C
   let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {
-      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using register command").await;
       return Ok(());
     }
   };
@@ -512,7 +512,7 @@ async fn garage_save_dino(ctx: &Context, msg: &Message, mut _args: Args) -> Comm
   let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {
-      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+      responder.error("No SteamID linked", crate::STEAM_ID_MESSAGE).await;
       return Ok(());
     }
   };

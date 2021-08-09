@@ -180,7 +180,7 @@ impl MessageResponder<'_> {
     });
     let _ = self.msg.channel_id.send_message(&self.ctx.http, |m| {
       m.embed(|e| {
-          e.title("Using gg.cb");
+          e.title("Usage gg.cb");
           e.description("gg.cb dino male|female|m|f");
           e.author(|a| {
               a.name(&self.msg.author.name);

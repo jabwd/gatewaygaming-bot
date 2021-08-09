@@ -82,12 +82,12 @@ async fn dino_request(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
   let steam_id = match user.steam_id {
     Some(id) => id,
     None => {
-      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+      responder.error("No SteamID linked", crate::STEAM_ID_MESSAGE).await;
       return Ok(());
     }
   };
   if steam_id.len() != 17 {
-    responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+    responder.error("No SteamID linked", crate::STEAM_ID_MESSAGE).await;
     return Ok(());
   }
 
@@ -184,7 +184,7 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
   let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {
-      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+      responder.error("No SteamID linked", crate::STEAM_ID_MESSAGE).await;
       return Ok(());
     }
   };
@@ -332,12 +332,12 @@ async fn admin_inject(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
   let steam_id = match user.steam_id {
     Some(id) => id,
     None => {
-      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+      responder.error("No SteamID linked", crate::STEAM_ID_MESSAGE).await;
       return Ok(());
     }
   };
   if steam_id.len() != 17 {
-    responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+    responder.error("No SteamID linked", crate::STEAM_ID_MESSAGE).await;
     return Ok(());
   }
 

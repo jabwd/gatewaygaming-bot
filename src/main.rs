@@ -77,11 +77,7 @@ impl TypeMapKey for DbPool {
   type Value = DbPoolType;
 }
 
-// pub struct FtpStreamContainer;
-
-// impl TypeMapKey for FtpStreamContainer {
-//   type Value = Arc<Mutex<FtpStream>>;
-// }
+const STEAM_ID_MESSAGE: &str = "Link your SteamID first before injecting dinos, use the register command";
 
 struct Handler;
 
@@ -153,7 +149,7 @@ impl EventHandler for Handler {
   }
 
   async fn ready(&self, ctx: Context, ready: Ready) {
-    println!("{{GG}} Bot is ready for rulebreaks and general scumbaggery");
+    println!("Dinobot is ready for rulebreaks and general scumbaggery");
 
     ctx.set_activity(Activity::playing("with ball pythons")).await;
 
@@ -211,7 +207,7 @@ async fn main() {
   // Set up FTP connection pool
   let ftp_manager: FtpConnectionManager = FtpConnectionManager::new(&ftp_address, &ftp_username, &ftp_password);
   let ftp_pool = bb8::Pool::builder()
-    .max_size(1)
+    .max_size(2)
     .build(ftp_manager)
     .await
     .expect("Could not build ftp connection pool");

@@ -26,7 +26,7 @@ pub async fn slay(ctx: &Context, msg: &Message) -> CommandResult {
   let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {
-      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using gg.register steamID").await;
+      responder.error("No SteamID linked", crate::STEAM_ID_MESSAGE).await;
       return Ok(());
     }
   };
