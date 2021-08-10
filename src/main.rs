@@ -207,7 +207,7 @@ async fn main() {
   // Set up FTP connection pool
   let ftp_manager: FtpConnectionManager = FtpConnectionManager::new(&ftp_address, &ftp_username, &ftp_password);
   let ftp_pool = bb8::Pool::builder()
-    .max_size(2)
+    .max_size(1)
     .build(ftp_manager)
     .await
     .expect("Could not build ftp connection pool");
@@ -269,8 +269,23 @@ async fn main() {
     loop {
       interval.tick().await;
       println!("=> Check ftp connection");
-      let mut ftp_stream = pool.get().await.expect("Expected FTP connection");
-      ftp_stream.noop().await.expect("No op failed on FTP Connection");
+      let mut ftp_stream = match pool.get().await {
+        Ok(stream) => stream,
+        Err(err) => {
+          println!("FTP Connection died in keepalive {}", err);
+          continue;
+        }
+      };
+      match ftp_stream.noop().await {
+        Ok(_) => {
+          println!("");
+          continue;
+        },
+        Err(err) => {
+          println!("Err no op: {}", err);
+          continue;
+        }
+      }
     }
   });
   tokio::spawn(async move {
