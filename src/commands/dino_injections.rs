@@ -224,7 +224,14 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
   let progress_msg = responder.in_progress("Injecting dino", "Contemplating whether to leg break you…").await.expect("Expected a progress msg");
   let data_read = ctx.data.read().await;
   let pool = data_read.get::<FtpPool>().expect("Expected ftp stream").clone();
-  let mut ftp_stream = pool.get().await.expect("Expected FTP connection");
+  let ftp_stream = pool.get().await;
+  let mut ftp_stream = match ftp_stream {
+    Ok(stream) => stream,
+    Err(err) => {
+      responder.error("Server connection down", format!("Something went wrong communicating with the game server: {:?}", err).as_str()).await;
+      return Ok(());
+    }
+  };
 
   let file_name = format!("{}.json", steam_id);
 
