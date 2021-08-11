@@ -78,7 +78,7 @@ async fn dino_request(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
     }
   }
 
-  let user = get_message_user(&ctx, &msg).await;
+  let user = msg.get_user(&ctx).await;
   let steam_id = match user.steam_id {
     Some(id) => id,
     None => {
@@ -180,7 +180,7 @@ async fn cash_buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
     }
   }
 
-  let user = get_message_user(&ctx, &msg).await;
+  let user = msg.get_user(&ctx).await;
   let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {

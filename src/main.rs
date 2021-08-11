@@ -161,16 +161,13 @@ impl EventHandler for Handler {
   
     {
       let mut reaction_context = reaction_context_lock.write().await;
-  
       reaction_context.bot_user_id = ready.user.id.0;
     }
   }
 
-  async fn message(&self, _ctx: Context, _msg: Message) {    
-  }
+  async fn message(&self, _ctx: Context, _msg: Message) {}
 
-  async fn resume(&self, _: Context, _: ResumedEvent) {
-  }
+  async fn resume(&self, _: Context, _: ResumedEvent) {}
 }
 
 #[tokio::main]

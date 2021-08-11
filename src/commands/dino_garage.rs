@@ -20,8 +20,7 @@ async fn exterminate_garage(ctx: &Context, msg: &Message) -> CommandResult {
     msg,
   };
 
-  let user = get_message_user(&ctx, &msg).await;
-
+  let user = msg.get_user(&ctx).await;
   let data = ctx.data.read().await;
   let db = data.get::<DbPool>().unwrap();
   let slots = match Garage::slots_for_user(user.id, &db) {
@@ -51,8 +50,7 @@ async fn garage_list(ctx: &Context, msg: &Message) -> CommandResult {
     msg,
   };
 
-  let user = get_message_user(&ctx, &msg).await;
-
+  let user = msg.get_user(&ctx).await;
   let data = ctx.data.read().await;
   let db = data.get::<DbPool>().unwrap();
   let slots = match Garage::slots_for_user(user.id, &db) {
@@ -305,7 +303,7 @@ async fn garage_swap_dino(ctx: &Context, msg: &Message) -> CommandResult {
     msg,
   };
 
-  let user = get_message_user(&ctx, &msg).await;
+  let user = msg.get_user(&ctx).await;
   let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {
@@ -385,8 +383,7 @@ async fn garage_delete(ctx: &Context, msg: &Message) -> CommandResult {
     msg,
   };
 
-  let user = get_message_user(&ctx, &msg).await;
-
+  let user = msg.get_user(&ctx).await;
   let data = ctx.data.read().await;
   let db = data.get::<DbPool>().unwrap();
   let slots = match Garage::slots_for_user(user.id, &db) {
@@ -442,7 +439,7 @@ async fn restore_garage_slot(ctx: &Context, msg: &Message, mut _args: Args) -> C
   };
   let save_name = "".to_string();
 
-  let user = get_message_user(&ctx, &msg).await;
+  let user = msg.get_user(&ctx).await;
   let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {
@@ -508,7 +505,7 @@ async fn garage_save_dino(ctx: &Context, msg: &Message, mut _args: Args) -> Comm
 
   let save_name = "na".to_string();
 
-  let user = get_message_user(&ctx, &msg).await;
+  let user = msg.get_user(&ctx).await;
   let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {

@@ -21,7 +21,7 @@ pub async fn check_dino(ctx: &Context, msg: &Message) -> CommandResult {
     msg,
   };
 
-  let user = get_message_user(&ctx, &msg).await;
+  let user = msg.get_user(&ctx).await;
   let steam_id = match user.steam_id {
     Some(id) => id,
     None => {

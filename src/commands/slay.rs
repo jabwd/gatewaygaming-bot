@@ -22,7 +22,7 @@ pub async fn slay(ctx: &Context, msg: &Message) -> CommandResult {
     msg,
   };
 
-  let user = get_message_user(&ctx, &msg).await;
+  let user = msg.get_user(&ctx).await;
   let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {

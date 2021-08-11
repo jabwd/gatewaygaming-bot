@@ -6,6 +6,23 @@ pub struct Dino {
   pub enabled: bool,
   pub cost: i64,
   pub growth: String,
+  pub target_growth: f32,
+  pub min_growth: f32,
+  pub max_growth: f32,
+  pub nesting_roles: Vec<String>,
+  pub spawn_roles: Vec<String>,
+}
+
+pub struct Dinosaur {
+  pub character_class: String,
+  pub display_name: String,
+  pub aliases: Vec<String>,
+  pub enabled: bool,
+  pub cost: i64,
+  pub growth: String,
+  pub target_growth: f32,
+  pub min_growth: f32,
+  pub max_growth: f32,
   pub nesting_roles: Vec<String>,
   pub spawn_roles: Vec<String>,
 }
@@ -20,6 +37,9 @@ impl Dino {
         enabled,
         cost,
         growth: growth.to_string(),
+        target_growth: 0.0,
+        min_growth: 0.0,
+        max_growth: 0.0,
         nesting_roles: vec![],
         spawn_roles: vec![],
     };

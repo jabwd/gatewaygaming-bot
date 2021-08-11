@@ -24,10 +24,7 @@ use crate::{
 #[aliases("teleport", "tp")]
 #[only_in("guilds")]
 pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-  let responder = MessageResponder {
-    ctx,
-    msg,
-  };
+  let responder = MessageResponder { ctx, msg };
 
   let guild_id = match msg.guild_id {
     Some(guild_id_v) => guild_id_v.0,
@@ -59,7 +56,7 @@ pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
   let tp_cd_minutes = 10;
   let tp_cd_seconds = tp_cd_minutes * 60;
 
-  let user = get_message_user(&ctx, &msg).await;
+  let user = msg.get_user(&ctx).await;
   if let Some(last_tp) = user.last_tp {
     let now = Utc::now();
     let duration_since = now.signed_duration_since(last_tp);
@@ -84,7 +81,7 @@ pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
     }
   };
 
-  let cost = 1000;
+  let cost = 1;
   let balance = Unbelievabot::check_balance(guild_id, msg.author.id.0).await.expect("Unable to fetch balance");
   if balance.cash < cost {
       responder.error("Not enough points", "You do not have enough cash points to teleport a dino right now").await;

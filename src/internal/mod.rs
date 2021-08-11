@@ -1,3 +1,5 @@
+use async_trait::async_trait;
+
 use crate::models::user::User;
 use crate::DbPool;
 use serenity::{
@@ -10,15 +12,30 @@ use serenity::{
 
 mod dino_options;
 
-pub async fn get_dinobot_context(ctx: &Context, msg: &Message) {
-  
+#[async_trait]
+pub trait MessageUtilities {
+  async fn get_user(&self, ctx: &Context) -> User;
 }
 
-pub async fn get_message_user(ctx: &Context, msg: &Message) -> User {
-  let data = ctx.data.read().await;
-  let db = data.get::<DbPool>().unwrap();
-  
-  User::get(msg.author.id, &db)
+#[async_trait]
+impl MessageUtilities for Message {
+  async fn get_user(&self, ctx: &Context) -> User {
+    let data = ctx.data.read().await;
+    let db = data.get::<DbPool>().unwrap();
+
+    User::get(self.author.id, &db)
+  }
+}
+
+pub fn gender_from_str(str: &str) -> bool {
+  match str {
+    "m" => false,
+    "male" => false,
+    "f" => true,
+    "female" => true,
+    "fem" => true,
+    _ => false,
+  }
 }
 
 pub async fn get_user_for_id(ctx: &Context, author_id: UserId) -> User {
