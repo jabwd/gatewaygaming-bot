@@ -53,7 +53,7 @@ pub async fn teleport(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
     responder.tp_usage().await;
     return Ok(());
   }
-  let tp_cd_minutes = 10;
+  let tp_cd_minutes = 2;
   let tp_cd_seconds = tp_cd_minutes * 60;
 
   let user = msg.get_user(&ctx).await;
