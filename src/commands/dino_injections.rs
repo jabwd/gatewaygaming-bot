@@ -335,7 +335,7 @@ async fn admin_inject(ctx: &Context, msg: &Message, mut args: Args) -> CommandRe
     }
   }
 
-  let user = get_db_user(&ctx, target_user.id).await;
+  let user = ctx.get_user(target_user.id).await;
   let steam_id = match user.steam_id {
     Some(id) => id,
     None => {

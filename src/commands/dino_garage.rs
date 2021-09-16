@@ -110,7 +110,7 @@ pub async fn garage_handle_list_reaction(ctx: &Context, msg: &Message, reaction:
   };
 
   let discord_user = reaction.user(&ctx).await.unwrap();
-  let user = get_user_for_id(&ctx, discord_user.id).await;
+  let user = ctx.get_user(discord_user.id).await;
   let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {
@@ -176,7 +176,7 @@ pub async fn garage_handle_swap_dino(ctx: &Context, msg: &Message, reaction: &Re
   };
 
   let discord_user = reaction.user(&ctx).await.unwrap();
-  let user = get_user_for_id(&ctx, discord_user.id).await;
+  let user = ctx.get_user(discord_user.id).await;
   let steam_id = match user.get_steam_id() {
     Some(id) => id,
     None => {

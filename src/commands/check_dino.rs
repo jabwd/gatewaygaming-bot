@@ -25,7 +25,7 @@ pub async fn check_dino(ctx: &Context, msg: &Message) -> CommandResult {
   let steam_id = match user.steam_id {
     Some(id) => id,
     None => {
-      responder.error("No SteamID linked", "Link your SteamID first before injecting dinos using the register command").await;
+      responder.error("No SteamID linked", crate::STEAM_ID_MESSAGE).await;
       return Ok(());
     }
   };

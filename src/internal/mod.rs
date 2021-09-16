@@ -13,6 +13,21 @@ use serenity::{
 mod dino_options;
 
 #[async_trait]
+pub trait ContextUtilities {
+  async fn get_user(&self, id: UserId) -> User;
+}
+
+#[async_trait]
+impl ContextUtilities for Context {
+  async fn get_user(&self, id: UserId) -> User {
+    let data = self.data.read().await;
+    let db = data.get::<DbPool>().unwrap();
+    let user = User::get(id, &db);
+    user
+  }
+}
+
+#[async_trait]
 pub trait MessageUtilities {
   async fn get_user(&self, ctx: &Context) -> User;
 }
@@ -20,10 +35,16 @@ pub trait MessageUtilities {
 #[async_trait]
 impl MessageUtilities for Message {
   async fn get_user(&self, ctx: &Context) -> User {
-    let data = ctx.data.read().await;
-    let db = data.get::<DbPool>().unwrap();
+    ctx.get_user(self.author.id).await
+  }
+}
 
-    User::get(self.author.id, &db)
+macro_rules! unwrap_or_return {
+  ( $e:expr ) => {
+    match $e {
+      Ok(x) => x,
+      Err(_) => Ok(())
+    }
   }
 }
 
@@ -36,18 +57,4 @@ pub fn gender_from_str(str: &str) -> bool {
     "fem" => true,
     _ => false,
   }
-}
-
-pub async fn get_user_for_id(ctx: &Context, author_id: UserId) -> User {
-  let data = ctx.data.read().await;
-  let db = data.get::<DbPool>().unwrap();
-  
-  User::get(author_id, &db)
-}
-
-pub async fn get_db_user(ctx: &Context, discord_id: serenity::model::id::UserId) -> User {
-  let data = ctx.data.read().await;
-  let db = data.get::<DbPool>().unwrap();
-  let user = User::get(discord_id, &db);
-  user
 }
