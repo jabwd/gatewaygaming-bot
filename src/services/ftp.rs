@@ -42,7 +42,7 @@ impl ManageConnection for FtpConnectionManager {
       _ => (),
     };
     println!("=> FTP Authenticated, locating player files");
-    match ftp_stream.cwd("107.158.201.138_14000/TheIsle/Saved/Databases/Survival/Players").await {
+    match ftp_stream.cwd("91.242.214.73_14000/TheIsle/Saved/Databases/Survival/Players").await {
       Err(err) => {
         return Err(err);
       },
